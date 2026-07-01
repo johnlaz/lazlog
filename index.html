@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>LAZLOG — Daily Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0a0f; --card:#14141c; --card-2:#1a1a24;
+    --border:rgba(255,255,255,0.08); --border-2:rgba(255,255,255,0.14);
+    --text:#e8e6e1; --text-dim:#8a8894;
+    --gold:#c9a45c; --gold-dim:rgba(201,164,92,0.12);
+    --teal:#2dd4bf; --teal-dim:rgba(45,212,191,0.12);
+    --red:#e8615c; --red-dim:rgba(232,97,92,0.12);
+    --c-green:#3ddc84; --c-yellow:#f2c94c; --c-orange:#f2994a; --c-red:#eb5757; --c-neutral:#8a8894;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:'DM Sans', sans-serif;
+    min-height:100vh; padding:16px; padding-bottom:100px;
+    max-width:480px; margin-left:auto; margin-right:auto;
+  }
+  h1{font-family:'Playfair Display', serif; font-size:24px; font-weight:700; color:var(--gold); margin:0; letter-spacing:0.5px;}
+  .sub{font-size:11px; color:var(--text-dim); margin-top:2px;}
+  header{display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px solid var(--border); padding-bottom:14px; margin-bottom:14px;}
+  .icon-btn{background:var(--card); border:1px solid var(--border); border-radius:10px; width:38px; height:38px; display:flex; align-items:center; justify-content:center; color:var(--text-dim); cursor:pointer; font-size:15px;}
+  .icon-btn:active{transform:scale(0.94);}
+  .header-actions{display:flex; gap:8px;}
+
+  .day-nav{display:flex; align-items:center; justify-content:space-between; background:var(--card); border:1px solid var(--border); border-radius:12px; padding:8px 10px; margin-bottom:16px;}
+  .day-nav button{background:var(--card-2); border:1px solid var(--border); color:var(--text-dim); width:30px; height:30px; border-radius:8px; cursor:pointer; font-size:14px;}
+  .day-nav button:active{transform:scale(0.92);}
+  .day-nav button:disabled{opacity:0.3; cursor:default;}
+  .day-label{font-size:13px; font-weight:600; text-align:center; flex:1;}
+  .day-label .today-tag{display:block; font-size:9.5px; color:var(--teal); font-weight:600; letter-spacing:0.5px; margin-top:1px;}
+
+  .verdict{background:linear-gradient(135deg, var(--card), var(--card-2)); border:1px solid var(--border-2); border-radius:14px; padding:14px 16px; margin-bottom:18px;}
+  .verdict-top{display:flex; align-items:center; gap:10px; margin-bottom:8px;}
+  .day-badge{
+    display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:700;
+    letter-spacing:0.5px; padding:5px 11px; border-radius:20px; white-space:nowrap;
+  }
+  .day-badge .dot{width:9px; height:9px; border-radius:50%;}
+  .verdict-label{font-size:10px; text-transform:uppercase; letter-spacing:1px; color:var(--text-dim); margin-bottom:4px;}
+  .verdict-text{font-size:14px; line-height:1.5; font-weight:500;}
+  .log-dot{width:8px; height:8px; border-radius:50%; margin-top:4px; flex-shrink:0;}
+
+  section{margin-bottom:20px;}
+  .section-label{font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--text-dim); margin-bottom:10px; font-weight:600;}
+
+  .grid4{display:grid; grid-template-columns:repeat(4,1fr); gap:8px;}
+  .tap-btn{background:var(--card); border:1px solid var(--border); border-radius:14px; padding:12px 4px; display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer; color:var(--text);}
+  .tap-btn:active{transform:scale(0.95);}
+  .tap-btn .ic{font-size:20px;}
+  .tap-btn .lbl{font-size:9.5px; color:var(--text-dim); text-align:center; line-height:1.2;}
+  .tap-btn .count{font-family:'DM Mono', monospace; font-size:15px; font-weight:500;}
+  .tap-btn.coffee .count{color:#d9a441;}
+  .tap-btn.water .count{color:var(--teal);}
+  .tap-btn.smoke .count{color:var(--red);}
+  .tap-btn.junk .count{color:var(--red);}
+  .tap-btn.resist{background:linear-gradient(180deg, var(--card), var(--teal-dim)); border-color:rgba(45,212,191,0.3);}
+  .tap-btn.resist .count{color:var(--teal);}
+  .tap-btn.photo{background:linear-gradient(180deg, var(--card), var(--gold-dim)); border-color:rgba(201,164,92,0.35);}
+  .tap-btn.photo .count{color:var(--gold);}
+  .tap-btn.wide{grid-column:span 4; flex-direction:row; justify-content:center; gap:10px; padding:13px;}
+  .tap-btn.wide .lbl{font-size:12px;}
+
+  .row-card{background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px;}
+  .weight-row{display:flex; gap:8px; align-items:center;}
+  .weight-row input{flex:1; background:var(--card-2); border:1px solid var(--border); border-radius:10px; padding:10px 12px; color:var(--text); font-family:'DM Mono', monospace; font-size:15px;}
+  .weight-row input:focus{outline:none; border-color:var(--gold);}
+  .weight-row button{background:var(--gold-dim); border:1px solid var(--gold); color:var(--gold); border-radius:10px; padding:10px 16px; font-weight:600; font-size:12px; cursor:pointer; white-space:nowrap;}
+  .weight-row button:active{transform:scale(0.96);}
+  .weight-latest{font-size:11px; color:var(--text-dim); margin-top:8px;}
+  .weight-latest span{color:var(--gold); font-family:'DM Mono', monospace;}
+
+  .grid3{display:grid; grid-template-columns:repeat(3,1fr); gap:8px;}
+  .feel-btn{background:var(--card-2); border:1px solid var(--border); border-radius:10px; padding:10px 4px; font-size:12px; font-weight:500; color:var(--text-dim); cursor:pointer;}
+  .feel-btn.active{background:var(--teal-dim); border-color:var(--teal); color:var(--teal);}
+
+  .timeline{max-height:220px; overflow-y:auto; display:flex; flex-direction:column; gap:6px;}
+  .log-item{background:var(--card); border:1px solid var(--border); border-radius:10px; padding:9px 12px; display:flex; gap:10px; align-items:flex-start; font-size:12.5px;}
+  .log-item .log-body{flex:1; display:flex; gap:10px; align-items:flex-start;}
+  .log-del{background:none; border:none; color:var(--text-dim); font-size:15px; line-height:1; cursor:pointer; padding:2px 4px; flex-shrink:0; margin-top:-1px;}
+  .log-del:active{color:var(--red); transform:scale(0.9);}
+  .log-time{font-family:'DM Mono', monospace; font-size:11px; color:var(--text-dim); white-space:nowrap; margin-top:1px;}
+  .log-tag{color:var(--text-dim); font-weight:600; margin-right:4px;}
+  .empty-note{font-size:12px; color:var(--text-dim); font-style:italic; padding:8px 2px;}
+
+  footer{position:fixed; bottom:0; left:0; right:0; background:linear-gradient(180deg, transparent, var(--bg) 30%); padding:16px; display:flex; justify-content:center;}
+  footer form{width:100%; max-width:448px; position:relative;}
+  footer input{width:100%; background:var(--card); border:1px solid var(--border-2); border-radius:14px; padding:13px 60px 13px 16px; color:var(--text); font-size:14px;}
+  footer input:focus{outline:none; border-color:var(--gold);}
+  footer button{position:absolute; right:6px; top:6px; bottom:6px; background:var(--gold); border:none; color:#12100a; font-weight:700; font-size:12px; border-radius:9px; padding:0 16px; cursor:pointer;}
+  footer button:active{transform:scale(0.96);}
+
+  .confirm-bar{background:var(--card); border:1px solid var(--red); border-radius:12px; padding:10px 14px; display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; font-size:12px;}
+  .confirm-bar .btns{display:flex; gap:8px;}
+  .confirm-bar button{border-radius:8px; padding:6px 12px; font-size:11px; font-weight:600; cursor:pointer; border:1px solid;}
+  .btn-danger{background:var(--red-dim); border-color:var(--red); color:var(--red);}
+  .btn-quiet{background:var(--card-2); border-color:var(--border); color:var(--text-dim);}
+
+  .toast{position:fixed; top:16px; left:50%; transform:translateX(-50%); background:var(--gold); color:#12100a; font-size:12px; font-weight:600; padding:8px 16px; border-radius:20px; opacity:0; pointer-events:none; transition:opacity 0.2s; z-index:50; max-width:90%; text-align:center;}
+  .toast.show{opacity:1;}
+
+  .modal-overlay{position:fixed; inset:0; background:rgba(0,0,0,0.6); display:none; align-items:center; justify-content:center; z-index:60; padding:20px;}
+  .modal-overlay.show{display:flex;}
+  .modal{background:var(--card); border:1px solid var(--border-2); border-radius:16px; padding:20px; width:100%; max-width:400px;}
+  .modal h2{font-family:'Playfair Display', serif; font-size:17px; color:var(--gold); margin:0 0 6px;}
+  .modal p{font-size:12px; color:var(--text-dim); line-height:1.5; margin:0 0 14px;}
+  .modal input{width:100%; background:var(--card-2); border:1px solid var(--border); border-radius:10px; padding:11px 12px; color:var(--text); font-family:'DM Mono', monospace; font-size:13px; margin-bottom:12px;}
+  .modal input:focus{outline:none; border-color:var(--gold);}
+  .modal-btns{display:flex; gap:8px; justify-content:flex-end;}
+  .modal-btns button{border-radius:9px; padding:9px 16px; font-size:12px; font-weight:600; cursor:pointer; border:1px solid;}
+
+  .analyzing{display:flex; align-items:center; gap:8px; font-size:12px; color:var(--gold); padding:8px 2px;}
+  .spinner{width:12px; height:12px; border:2px solid var(--gold-dim); border-top-color:var(--gold); border-radius:50%; animation:spin 0.7s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .ask-badge{display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:700; padding:5px 12px; border-radius:20px; margin-bottom:10px;}
+  .ask-dish{font-size:14px; font-weight:600; margin-bottom:4px;}
+  .ask-verdict{font-size:13px; font-weight:600; margin-bottom:8px; line-height:1.4;}
+  .ask-details{font-size:12.5px; color:var(--text-dim); line-height:1.5; margin-bottom:12px;}
+  .ask-alts-label{font-size:10px; text-transform:uppercase; letter-spacing:1px; color:var(--text-dim); margin-bottom:6px; font-weight:600;}
+  .ask-alts{list-style:none; margin:0 0 4px; padding:0; display:flex; flex-direction:column; gap:6px;}
+  .ask-alts li{font-size:12.5px; background:var(--card-2); border:1px solid var(--border); border-radius:8px; padding:8px 10px;}
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal">
+    <h2>Groq API Key</h2>
+    <p>Used only in your browser to analyze food photos. Stored locally on this device, never sent anywhere except Groq's API. Get a free key at console.groq.com/keys.</p>
+    <input type="password" id="apiKeyInput" placeholder="gsk_...">
+    <div class="modal-btns">
+      <button class="btn-quiet" onclick="closeSettings()">Cancel</button>
+      <button class="btn-danger" style="background:var(--gold-dim); border-color:var(--gold); color:var(--gold);" onclick="saveApiKey()">Save Key</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="askModal">
+  <div class="modal" style="max-width:440px;">
+    <h2>Ask My Chef</h2>
+    <p>Tell it what you're thinking about eating or cooking — plain language is fine.</p>
+    <textarea id="askInput" placeholder="e.g. cottage cheese with granola and honey, or frying up some chicken tenders..." style="width:100%; background:var(--card-2); border:1px solid var(--border); border-radius:10px; padding:11px 12px; color:var(--text); font-family:'DM Sans', sans-serif; font-size:13px; min-height:64px; resize:vertical; margin-bottom:12px;"></textarea>
+    <div id="askResult"></div>
+    <div class="modal-btns" id="askBtns">
+      <button class="btn-quiet" onclick="closeAskModal()">Close</button>
+      <button class="btn-danger" style="background:var(--gold-dim); border-color:var(--gold); color:var(--gold);" onclick="submitAsk()" id="askSubmitBtn">Ask</button>
+    </div>
+  </div>
+</div>
+
+<header>
+  <div>
+    <h1>LAZLOG</h1>
+    <div class="sub">Local-First Diet &amp; Habit Tracker</div>
+  </div>
+  <div class="header-actions">
+    <button class="icon-btn" onclick="openSettings()" title="Groq API key">⚙</button>
+    <button class="icon-btn" onclick="copyExport()" title="Copy log">⇩</button>
+    <button class="icon-btn" onclick="showConfirmClear()" title="Clear all">✕</button>
+  </div>
+</header>
+
+<div class="day-nav">
+  <button onclick="shiftDay(-1)">◀</button>
+  <div class="day-label" id="dayLabel">Today<span class="today-tag" id="todayTag"></span></div>
+  <button id="nextDayBtn" onclick="shiftDay(1)">▶</button>
+</div>
+
+<div id="confirmClear" class="confirm-bar" style="display:none;">
+  <span>Clear all logs? This can't be undone.</span>
+  <div class="btns">
+    <button class="btn-danger" onclick="clearLogs()">Clear</button>
+    <button class="btn-quiet" onclick="hideConfirmClear()">Cancel</button>
+  </div>
+</div>
+
+<div class="verdict">
+  <div class="verdict-top">
+    <span class="day-badge" id="dayBadge"><span class="dot"></span><span id="dayBadgeText">—</span></span>
+  </div>
+  <div class="verdict-label" id="verdictLabel">Today's Verdict</div>
+  <div class="verdict-text" id="verdictText">Log something to get roasted or praised.</div>
+</div>
+
+<section>
+  <div class="section-label">Quick Tap</div>
+  <div class="grid4">
+    <div class="tap-btn coffee" onclick="quickLog('Coffee','Cup of coffee')">
+      <div class="ic">☕</div><div class="lbl">Coffee</div><div class="count" id="cnt-Coffee">0</div>
+    </div>
+    <div class="tap-btn water" onclick="quickLog('Water','Bottle of water')">
+      <div class="ic">💧</div><div class="lbl">Water</div><div class="count" id="cnt-Water">0</div>
+    </div>
+    <div class="tap-btn smoke" onclick="quickLog('Smoked','Smoked')">
+      <div class="ic">🚬</div><div class="lbl">Smoked</div><div class="count" id="cnt-Smoked">0</div>
+    </div>
+    <div class="tap-btn junk" onclick="quickLog('Junk','Ate junk food')">
+      <div class="ic">🍔</div><div class="lbl">Ate Junk</div><div class="count" id="cnt-Junk">0</div>
+    </div>
+  </div>
+  <div class="grid4" style="margin-top:8px;">
+    <div class="tap-btn resist" onclick="quickLog('Resisted','Resisted an urge')">
+      <div class="ic">✋</div><div class="lbl">Resisted</div><div class="count" id="cnt-Resisted">0</div>
+    </div>
+    <div class="tap-btn photo" onclick="triggerPhoto()" style="grid-column: span 3;">
+      <div class="ic">📸</div><div class="lbl">Snap a Meal — auto-log nutrition</div>
+    </div>
+  </div>
+  <input type="file" id="photoInput" accept="image/*" capture="environment" style="display:none;" onchange="handlePhoto(event)">
+  <div id="analyzingRow"></div>
+  <div class="tap-btn photo" onclick="openAskModal()" style="margin-top:8px; flex-direction:row; justify-content:center; gap:10px; padding:13px;">
+    <div class="ic">🧑‍🍳</div><div class="lbl" style="font-size:12px;">Ask My Chef — is this healthy?</div>
+  </div>
+</section>
+
+<section>
+  <div class="section-label">Weight</div>
+  <div class="row-card">
+    <div class="weight-row">
+      <input type="number" id="weightInput" placeholder="Enter weight (lbs)" step="0.1">
+      <button onclick="logWeight()">Log</button>
+    </div>
+    <div class="weight-latest" id="weightLatest"></div>
+  </div>
+</section>
+
+<section>
+  <div class="section-label">How I Feel</div>
+  <div class="row-card">
+    <div class="grid3" id="feelGrid">
+      <div class="feel-btn" data-feel="Good" onclick="setFeel('Good')">Good</div>
+      <div class="feel-btn" data-feel="Okay" onclick="setFeel('Okay')">Okay</div>
+      <div class="feel-btn" data-feel="Rough" onclick="setFeel('Rough')">Rough</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="section-label" id="timelineLabel">Today's Timeline</div>
+  <div class="timeline" id="timeline"></div>
+</section>
+
+<footer>
+  <form onsubmit="handleNote(event)">
+    <input type="text" id="noteInput" placeholder="Quick note (food, symptom, mood)...">
+    <button type="submit">Log</button>
+  </form>
+</footer>
+
+<script>
+let logs = JSON.parse(localStorage.getItem('lazlog_data') || '[]');
+let selectedDate = toISODate(new Date());
+
+function toISODate(d){
+  const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
+  return y + '-' + m + '-' + day;
+}
+function todayISO(){ return toISODate(new Date()); }
+
+function save(){ localStorage.setItem('lazlog_data', JSON.stringify(logs)); }
+
+function addLog(type, value, meta){
+  const now = new Date();
+  const entry = {
+    id: Date.now(),
+    date: todayISO(),
+    timestamp: now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
+    type: type, value: value
+  };
+  if(meta) entry.meta = meta;
+  logs.unshift(entry);
+  save();
+  render();
+}
+
+function quickLog(type, value){ addLog(type, value); toast(value); }
+
+function handleNote(e){
+  e.preventDefault();
+  const input = document.getElementById('noteInput');
+  if(!input.value.trim()) return;
+  addLog('Note', input.value.trim());
+  input.value = '';
+}
+
+function logWeight(){
+  const input = document.getElementById('weightInput');
+  const val = parseFloat(input.value);
+  if(!val || val <= 0) return;
+  addLog('Weight', val + ' lbs');
+  input.value = '';
+  toast('Weight logged');
+}
+
+function setFeel(feel){ addLog('Feeling', feel); toast('Feeling: ' + feel); }
+
+function showConfirmClear(){ document.getElementById('confirmClear').style.display='flex'; }
+function hideConfirmClear(){ document.getElementById('confirmClear').style.display='none'; }
+function clearLogs(){ logs = []; save(); hideConfirmClear(); render(); }
+
+function copyExport(){
+  const md = logs.map(function(l){ return '[' + l.date + ' ' + l.timestamp + '] (' + l.type + ') ' + l.value; }).join('\n');
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(md).then(function(){ toast('Copied to clipboard'); }).catch(function(){ toast('Copy failed'); });
+  } else { toast('Clipboard unavailable'); }
+}
+
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 1400);
+}
+
+function shiftDay(delta){
+  const parts = selectedDate.split('-').map(Number);
+  const dt = new Date(parts[0], parts[1]-1, parts[2]);
+  dt.setDate(dt.getDate() + delta);
+  const iso = toISODate(dt);
+  if(iso > todayISO()) return;
+  selectedDate = iso;
+  render();
+}
+
+function getSelectedLogs(){ return logs.filter(function(l){ return l.date === selectedDate; }); }
+
+function updateDayLabel(){
+  const parts = selectedDate.split('-').map(Number);
+  const dt = new Date(parts[0], parts[1]-1, parts[2]);
+  const label = dt.toLocaleDateString([], {weekday:'short', month:'short', day:'numeric'});
+  const isToday = selectedDate === todayISO();
+  document.getElementById('dayLabel').innerHTML = label + (isToday ? '<span class="today-tag">TODAY</span>' : '');
+  document.getElementById('nextDayBtn').disabled = isToday;
+  document.getElementById('verdictLabel').textContent = isToday ? "Today's Verdict" : label + ' — Verdict';
+  document.getElementById('timelineLabel').textContent = isToday ? "Today's Timeline" : label + ' — Timeline';
+}
+
+function openSettings(){
+  document.getElementById('apiKeyInput').value = localStorage.getItem('lazlog_groq_key') || '';
+  document.getElementById('settingsModal').classList.add('show');
+}
+function closeSettings(){ document.getElementById('settingsModal').classList.remove('show'); }
+function saveApiKey(){
+  const key = document.getElementById('apiKeyInput').value.trim();
+  if(key) localStorage.setItem('lazlog_groq_key', key);
+  else localStorage.removeItem('lazlog_groq_key');
+  closeSettings();
+  toast(key ? 'API key saved' : 'API key cleared');
+}
+
+let lastAskResult = null;
+
+function openAskModal(){
+  const key = localStorage.getItem('lazlog_groq_key');
+  if(!key){ toast('Add your Groq API key first'); openSettings(); return; }
+  document.getElementById('askInput').value = '';
+  document.getElementById('askResult').innerHTML = '';
+  lastAskResult = null;
+  resetAskButtons();
+  document.getElementById('askModal').classList.add('show');
+}
+function closeAskModal(){ document.getElementById('askModal').classList.remove('show'); }
+
+function resetAskButtons(){
+  document.getElementById('askBtns').innerHTML =
+    '<button class="btn-quiet" onclick="closeAskModal()">Close</button>' +
+    '<button class="btn-danger" style="background:var(--gold-dim); border-color:var(--gold); color:var(--gold);" onclick="submitAsk()" id="askSubmitBtn">Ask</button>';
+}
+
+async function submitAsk(){
+  const q = document.getElementById('askInput').value.trim();
+  if(!q) return;
+  const key = localStorage.getItem('lazlog_groq_key');
+  if(!key){ toast('Add your Groq API key first'); openSettings(); return; }
+
+  const resultEl = document.getElementById('askResult');
+  resultEl.innerHTML = '<div class="analyzing"><div class="spinner"></div>Thinking it through...</div>';
+  document.getElementById('askSubmitBtn').disabled = true;
+
+  try{
+    const prompt = 'You are a friendly, direct personal nutritionist and home chef. Someone is thinking about eating or cooking this: "' + q + '". They do not understand nutrition jargon, so keep language plain and simple. Rate it with a traffic-light system: "green" (healthy, minimally processed), "yellow" (moderate, fine in normal portions), "orange" (processed/heavy, a caution), or "red" (poor choice - fried, sugary, very processed). Give a short direct verdict, a 2-3 sentence plain-language explanation, and 2-3 short concrete alternative ideas that would make it healthier while still being something they would actually want to eat. Respond ONLY with valid JSON in this exact shape, no other text: {"dish":"short name of what they described","rating":"green"|"yellow"|"orange"|"red","verdict":"one direct sentence","details":"2-3 sentence plain-language explanation","alternatives":["short alt 1","short alt 2","short alt 3"]}';
+
+    const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+      body: JSON.stringify({
+        model: 'qwen/qwen3.6-27b',
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.5,
+        max_completion_tokens: 500,
+        reasoning_effort: 'none',
+        reasoning_format: 'hidden',
+        response_format: { type: 'json_object' }
+      })
+    });
+
+    if(!resp.ok){
+      const errText = await resp.text().catch(function(){ return ''; });
+      throw new Error('API error ' + resp.status + (errText ? ': ' + errText.slice(0,150) : ''));
+    }
+
+    const data = await resp.json();
+    const raw = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
+    console.log('LAZLOG Ask My Chef raw response:', raw);
+    const cleaned = raw.replace(/```json/gi, '').replace(/```/g, '').trim();
+    const result = JSON.parse(cleaned);
+
+    if(!result.verdict && !result.dish){
+      throw new Error('Model response missing expected fields: ' + cleaned.slice(0,150));
+    }
+
+    const rating = ['green','yellow','orange','red'].includes(result.rating) ? result.rating : 'yellow';
+    const dotEmoji = { green: '🟢', yellow: '🟡', orange: '🟠', red: '🔴' }[rating];
+    const alts = Array.isArray(result.alternatives) ? result.alternatives : [];
+
+    lastAskResult = { q: q, dish: result.dish || q, rating: rating, verdict: result.verdict || '', details: result.details || '' };
+
+    resultEl.innerHTML =
+      '<span class="ask-badge" style="background:color-mix(in srgb, ' + colorHex(rating) + ' 18%, transparent); color:' + colorHex(rating) + ';">' + dotEmoji + ' ' + rating.toUpperCase() + '</span>' +
+      '<div class="ask-dish">' + (result.dish || q) + '</div>' +
+      '<div class="ask-verdict">' + (result.verdict || '') + '</div>' +
+      '<div class="ask-details">' + (result.details || '') + '</div>' +
+      (alts.length ? '<div class="ask-alts-label">Healthier Alternatives</div><ul class="ask-alts">' + alts.map(function(a){ return '<li>' + a + '</li>'; }).join('') + '</ul>' : '');
+
+    document.getElementById('askBtns').innerHTML =
+      '<button class="btn-quiet" onclick="closeAskModal()">Close</button>' +
+      '<button class="btn-danger" style="background:var(--gold-dim); border-color:var(--gold); color:var(--gold);" onclick="logAskResult()">Log It</button>';
+
+  } catch(err){
+    console.error('LAZLOG Ask My Chef error:', err);
+    resultEl.innerHTML = '<div class="empty-note">Couldn\'t get an answer — check the browser console for details, or try rephrasing.</div>';
+    resetAskButtons();
+  }
+}
+
+function logAskResult(){
+  if(!lastAskResult) return;
+  const dotEmoji = { green: '🟢', yellow: '🟡', orange: '🟠', red: '🔴' }[lastAskResult.rating];
+  const summary = dotEmoji + ' ' + lastAskResult.dish + ' — ' + lastAskResult.verdict;
+  addLog('Meal', summary, { rating: lastAskResult.rating });
+  toast('Logged: ' + lastAskResult.dish);
+  closeAskModal();
+}
+
+function triggerPhoto(){
+  const key = localStorage.getItem('lazlog_groq_key');
+  if(!key){ toast('Add your Groq API key first'); openSettings(); return; }
+  document.getElementById('photoInput').click();
+}
+
+function compressImage(file, maxDim){
+  return new Promise(function(resolve, reject){
+    const img = new Image();
+    const reader = new FileReader();
+    reader.onload = function(e){ img.src = e.target.result; };
+    reader.onerror = reject;
+    img.onload = function(){
+      let width = img.width, height = img.height;
+      if(width > height && width > maxDim){ height = Math.round(height * maxDim / width); width = maxDim; }
+      else if(height > maxDim){ width = Math.round(width * maxDim / height); height = maxDim; }
+      const canvas = document.createElement('canvas');
+      canvas.width = width; canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL('image/jpeg', 0.7));
+    };
+    img.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function handlePhoto(event){
+  const file = event.target.files[0];
+  event.target.value = '';
+  if(!file) return;
+  const key = localStorage.getItem('lazlog_groq_key');
+  if(!key){ toast('Add your Groq API key first'); openSettings(); return; }
+
+  const row = document.getElementById('analyzingRow');
+  row.innerHTML = '<div class="analyzing"><div class="spinner"></div>Analyzing photo...</div>';
+
+  try{
+    const dataUrl = await compressImage(file, 800);
+    const prompt = 'You are a nutrition estimator for a personal diet log aimed at someone who does not understand nutrition numbers. Identify the food or drink in this photo. Give an approximate nutrition estimate for the visible portion, AND rate it as a dietary choice using a traffic-light system: "green" (whole/minimally processed, good choice), "yellow" (moderate, fine in normal portions), "orange" (processed or heavy, a caution), or "red" (poor choice - fried, sugary, heavily processed, or large indulgent portion). Respond ONLY with valid JSON in this exact shape, no other text: {"food":"short name","calories":number,"protein_g":number,"carbs_g":number,"fat_g":number,"confidence":"low"|"medium"|"high","rating":"green"|"yellow"|"orange"|"red","reason":"3-6 word reason for the rating"}';
+
+    const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + key
+      },
+      body: JSON.stringify({
+        model: 'qwen/qwen3.6-27b',
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'text', text: prompt },
+            { type: 'image_url', image_url: { url: dataUrl } }
+          ]
+        }],
+        temperature: 0.3,
+        max_completion_tokens: 400,
+        reasoning_effort: 'none',
+        reasoning_format: 'hidden',
+        response_format: { type: 'json_object' }
+      })
+    });
+
+    if(!resp.ok){
+      const errText = await resp.text().catch(function(){ return ''; });
+      throw new Error('API error ' + resp.status + (errText ? ': ' + errText.slice(0,150) : ''));
+    }
+
+    const data = await resp.json();
+    const raw = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
+    console.log('LAZLOG Groq raw response:', raw);
+
+    const cleaned = raw.replace(/```json/gi, '').replace(/```/g, '').trim();
+    const nutrition = JSON.parse(cleaned);
+
+    if(nutrition.calories === undefined && nutrition.food === undefined){
+      throw new Error('Model response missing expected fields: ' + cleaned.slice(0,150));
+    }
+
+    const cal = Math.round(nutrition.calories || 0);
+    const p = Math.round(nutrition.protein_g || 0);
+    const c = Math.round(nutrition.carbs_g || 0);
+    const f = Math.round(nutrition.fat_g || 0);
+    const conf = nutrition.confidence || 'medium';
+    const foodName = nutrition.food || 'Unidentified food';
+    const rating = ['green','yellow','orange','red'].includes(nutrition.rating) ? nutrition.rating : 'yellow';
+    const reason = nutrition.reason || '';
+    const dotEmoji = { green: '🟢', yellow: '🟡', orange: '🟠', red: '🔴' }[rating];
+
+    const summary = dotEmoji + ' ' + foodName + ' — ~' + cal + ' kcal (P' + p + '/C' + c + '/F' + f + 'g)' + (reason ? ' — ' + reason : '');
+    addLog('Meal Photo', summary, nutrition);
+    toast(dotEmoji + ' Logged: ' + foodName);
+  } catch(err){
+    console.error('LAZLOG photo analysis error:', err);
+    toast('Analysis failed — check browser console for details');
+    addLog('Meal Photo', 'Photo logged (estimate failed — check console/API key)');
+  } finally {
+    row.innerHTML = '';
+  }
+}
+
+function deleteLog(id){
+  logs = logs.filter(function(l){ return l.id !== id; });
+  save();
+  render();
+  toast('Log deleted');
+}
+
+function getLogColor(log){
+  if((log.type === 'Meal Photo' || log.type === 'Meal') && log.meta && log.meta.rating) return log.meta.rating;
+  const map = { Water:'green', Resisted:'green', Coffee:'yellow', Smoked:'red', Junk:'red' };
+  return map[log.type] || null;
+}
+
+function colorHex(color){
+  return { green:'var(--c-green)', yellow:'var(--c-yellow)', orange:'var(--c-orange)', red:'var(--c-red)' }[color] || 'var(--c-neutral)';
+}
+function colorPoints(color){
+  return { green:2, yellow:0, orange:-1, red:-2 }[color] || 0;
+}
+
+function computeDayBadge(dayLogs){
+  let score = 0, counted = 0;
+  dayLogs.forEach(function(l){
+    const c = getLogColor(l);
+    if(c){ score += colorPoints(c); counted++; }
+  });
+  if(counted === 0) return { emoji:'⚪', label:'NO DATA YET', color:'var(--c-neutral)' };
+  if(score >= 5) return { emoji:'🟢', label:'WIN', color:'var(--c-green)' };
+  if(score >= 1) return { emoji:'🟡', label:'MIXED', color:'var(--c-yellow)' };
+  if(score >= -4) return { emoji:'🟠', label:'SLIPPING', color:'var(--c-orange)' };
+  return { emoji:'🔴', label:'SCREWUP', color:'var(--c-red)' };
+}
+
+function computeVerdict(dayLogs){
+  function count(t){ return dayLogs.filter(function(l){ return l.type === t; }).length; }
+  const smoke = count('Smoked'), junk = count('Junk'), water = count('Water'), resist = count('Resisted');
+
+  if(dayLogs.length === 0){
+    return selectedDate === todayISO()
+      ? "Empty board. Log something — coffee, water, whatever's true right now."
+      : "Nothing logged this day.";
+  }
+
+  const score = water*1 + resist*2 - smoke*2 - junk*1;
+
+  if(score >= 6) return 'Clean day. ' + water + ' waters, ' + resist + ' urges shut down, zero excuses. Keep this exact energy.';
+  if(score >= 2) return 'Solid day. A little junk (' + junk + ') but mostly on track — ' + water + ' waters logged.';
+  if(score >= -2) return 'Middle of the road. ' + smoke + ' smokes, ' + junk + ' junk hits — nothing catastrophic, but you know you can do better than "fine."';
+  if(score >= -6) return 'Rough one. ' + smoke + ' smokes and ' + junk + ' junk meals is a lot for one day. Next day is a clean reset — take it.';
+  return 'That was a wreck of a day — ' + smoke + ' smokes, ' + junk + ' junk meals, not going to pretend otherwise. Doesn\'t erase a good day before or after it. Get up and log a better one.';
+}
+
+function render(){
+  updateDayLabel();
+  const dayLogs = getSelectedLogs();
+
+  const badge = computeDayBadge(dayLogs);
+  const badgeEl = document.getElementById('dayBadge');
+  badgeEl.style.background = 'color-mix(in srgb, ' + badge.color + ' 18%, transparent)';
+  badgeEl.style.color = badge.color;
+  badgeEl.querySelector('.dot').style.background = badge.color;
+  document.getElementById('dayBadgeText').textContent = badge.emoji + ' ' + badge.label;
+
+  ['Coffee','Water','Smoked','Junk','Resisted'].forEach(function(type){
+    const el = document.getElementById('cnt-'+type);
+    if(el) el.textContent = dayLogs.filter(function(l){ return l.type===type; }).length;
+  });
+
+  document.getElementById('verdictText').textContent = computeVerdict(dayLogs);
+
+  const weightLogs = logs.filter(function(l){ return l.type==='Weight'; });
+  const wEl = document.getElementById('weightLatest');
+  wEl.innerHTML = weightLogs.length
+    ? 'Latest: <span>' + weightLogs[0].value + '</span> — logged ' + weightLogs[0].date
+    : 'No weight logged yet.';
+
+  const feelLogs = dayLogs.filter(function(l){ return l.type==='Feeling'; });
+  document.querySelectorAll('.feel-btn').forEach(function(btn){
+    btn.classList.toggle('active', feelLogs.length > 0 && feelLogs[0].value === btn.dataset.feel);
+  });
+
+  const tl = document.getElementById('timeline');
+  tl.innerHTML = dayLogs.length === 0
+    ? '<div class="empty-note">No logs captured this day.</div>'
+    : dayLogs.map(function(l){
+        const c = getLogColor(l);
+        const dot = c ? '<span class="log-dot" style="background:' + colorHex(c) + '"></span>' : '<span class="log-dot" style="background:transparent"></span>';
+        return '<div class="log-item"><div class="log-body">' + dot + '<span class="log-time">' + l.timestamp + '</span><span><span class="log-tag">[' + l.type + ']</span>' + l.value + '</span></div><button class="log-del" onclick="deleteLog(' + l.id + ')" title="Delete">✕</button></div>';
+      }).join('');
+}
+
+render();
+</script>
+</body>
+</html>
