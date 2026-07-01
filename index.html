@@ -26,9 +26,9 @@
   h1{font-family:'Playfair Display', serif; font-size:24px; font-weight:700; color:var(--gold); margin:0; letter-spacing:0.5px;}
   .sub{font-size:11px; color:var(--text-dim); margin-top:2px;}
   header{display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px solid var(--border); padding-bottom:14px; margin-bottom:14px;}
-  .icon-btn{background:var(--card); border:1px solid var(--border); border-radius:10px; width:38px; height:38px; display:flex; align-items:center; justify-content:center; color:var(--text-dim); cursor:pointer; font-size:15px;}
+  .icon-btn{background:var(--card); border:1px solid var(--border); border-radius:9px; width:34px; height:34px; display:flex; align-items:center; justify-content:center; color:var(--text-dim); cursor:pointer; font-size:14px;}
   .icon-btn:active{transform:scale(0.94);}
-  .header-actions{display:flex; gap:8px;}
+  .header-actions{display:flex; gap:6px;}
 
   .day-nav{display:flex; align-items:center; justify-content:space-between; background:var(--card); border:1px solid var(--border); border-radius:12px; padding:8px 10px; margin-bottom:16px;}
   .day-nav button{background:var(--card-2); border:1px solid var(--border); color:var(--text-dim); width:30px; height:30px; border-radius:8px; cursor:pointer; font-size:14px;}
@@ -108,7 +108,7 @@
 
   .modal-overlay{position:fixed; inset:0; background:rgba(0,0,0,0.6); display:none; align-items:center; justify-content:center; z-index:60; padding:20px;}
   .modal-overlay.show{display:flex;}
-  .modal{background:var(--card); border:1px solid var(--border-2); border-radius:16px; padding:20px; width:100%; max-width:400px;}
+  .modal{background:var(--card); border:1px solid var(--border-2); border-radius:16px; padding:20px; width:100%; max-width:400px; max-height:85vh; overflow-y:auto; -webkit-overflow-scrolling:touch;}
   .modal h2{font-family:'Playfair Display', serif; font-size:17px; color:var(--gold); margin:0 0 6px;}
   .modal p{font-size:12px; color:var(--text-dim); line-height:1.5; margin:0 0 14px;}
   .modal input{width:100%; background:var(--card-2); border:1px solid var(--border); border-radius:10px; padding:11px 12px; color:var(--text); font-family:'DM Mono', monospace; font-size:13px; margin-bottom:12px;}
@@ -126,7 +126,16 @@
   .ask-details{font-size:12.5px; color:var(--text-dim); line-height:1.5; margin-bottom:12px;}
   .ask-alts-label{font-size:10px; text-transform:uppercase; letter-spacing:1px; color:var(--text-dim); margin-bottom:6px; font-weight:600;}
   .ask-alts{list-style:none; margin:0 0 4px; padding:0; display:flex; flex-direction:column; gap:6px;}
-  .ask-alts li{font-size:12.5px; background:var(--card-2); border:1px solid var(--border); border-radius:8px; padding:8px 10px;}
+  .ask-alt-item{font-size:12.5px; background:var(--card-2); border:1px solid var(--border); border-radius:8px; padding:8px 10px; cursor:pointer;}
+  .ask-alt-head{display:flex; justify-content:space-between; align-items:center; gap:8px;}
+  .ask-alt-chev{font-size:10px; color:var(--text-dim); transition:transform 0.2s; flex-shrink:0;}
+  .ask-alt-item.open .ask-alt-chev{transform:rotate(180deg);}
+  .ask-alt-reason{max-height:0; overflow:hidden; font-size:11.5px; color:var(--text-dim); line-height:1.4; transition:max-height 0.25s ease, margin-top 0.25s ease;}
+  .ask-alt-item.open .ask-alt-reason{max-height:120px; margin-top:6px;}
+  .ask-thread{max-height:150px; overflow-y:auto; display:flex; flex-direction:column; gap:6px; margin-bottom:10px;}
+  .ask-thread:empty{display:none; margin-bottom:0;}
+  .ask-msg-user{align-self:flex-end; max-width:85%; background:var(--gold-dim); border:1px solid rgba(201,164,92,0.25); color:var(--text); font-size:12px; padding:7px 11px; border-radius:10px 10px 2px 10px;}
+  .ask-msg-ai{align-self:flex-start; max-width:88%; background:var(--card-2); border:1px solid var(--border); font-size:12px; padding:7px 11px; border-radius:10px 10px 10px 2px; display:flex; align-items:flex-start; gap:6px;}
 </style>
 </head>
 <body>
@@ -148,10 +157,11 @@
 <div class="modal-overlay" id="askModal">
   <div class="modal" style="max-width:440px;">
     <h2>Ask My Chef</h2>
-    <p>Tell it what you're thinking about eating or cooking — plain language is fine.</p>
-    <textarea id="askInput" placeholder="e.g. cottage cheese with granola and honey, or frying up some chicken tenders..." style="width:100%; background:var(--card-2); border:1px solid var(--border); border-radius:10px; padding:11px 12px; color:var(--text); font-family:'DM Sans', sans-serif; font-size:13px; min-height:64px; resize:vertical; margin-bottom:12px;"></textarea>
+    <p>Tell it what you're thinking about eating or cooking, then keep refining — swap ingredients, ask "what if I baked it instead," whatever. It remembers the conversation.</p>
+    <div class="ask-thread" id="askThread"></div>
+    <textarea id="askInput" placeholder="e.g. cottage cheese with granola and honey, or frying up some chicken tenders..." style="width:100%; background:var(--card-2); border:1px solid var(--border); border-radius:10px; padding:11px 12px; color:var(--text); font-family:'DM Sans', sans-serif; font-size:13px; min-height:56px; resize:vertical; margin-bottom:12px;"></textarea>
     <div id="askResult"></div>
-    <div class="modal-btns" id="askBtns">
+    <div class="modal-btns" id="askBtns" style="flex-wrap:wrap;">
       <button class="btn-quiet" onclick="closeAskModal()">Close</button>
       <button class="btn-danger" style="background:var(--gold-dim); border-color:var(--gold); color:var(--gold);" onclick="submitAsk()" id="askSubmitBtn">Ask</button>
     </div>
@@ -165,10 +175,13 @@
   </div>
   <div class="header-actions">
     <button class="icon-btn" onclick="openSettings()" title="Groq API key">⚙</button>
-    <button class="icon-btn" onclick="copyExport()" title="Copy log">⇩</button>
+    <button class="icon-btn" onclick="exportData()" title="Export backup">💾</button>
+    <button class="icon-btn" onclick="document.getElementById('importInput').click()" title="Import backup">📂</button>
+    <button class="icon-btn" onclick="copyExport()" title="Copy log as text">⇩</button>
     <button class="icon-btn" onclick="showConfirmClear()" title="Clear all">✕</button>
   </div>
 </header>
+<input type="file" id="importInput" accept="application/json" style="display:none;" onchange="handleImport(event)">
 
 <div class="day-nav">
   <button onclick="shiftDay(-1)">◀</button>
@@ -260,6 +273,52 @@
 <script>
 let logs = JSON.parse(localStorage.getItem('lazlog_data') || '[]');
 let selectedDate = toISODate(new Date());
+
+function exportData(){
+  const payload = { exportedAt: new Date().toISOString(), logs: logs };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'lazlog-backup-' + todayISO() + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast('Backup exported');
+}
+
+function handleImport(event){
+  const file = event.target.files[0];
+  event.target.value = '';
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      const parsed = JSON.parse(e.target.result);
+      const incoming = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.logs) ? parsed.logs : null);
+      if(!incoming) throw new Error('File does not look like a LazLog backup');
+      const existingIds = {};
+      logs.forEach(function(l){ existingIds[l.id] = true; });
+      let added = 0;
+      incoming.forEach(function(l){
+        if(l && l.id && !existingIds[l.id]){
+          logs.push(l);
+          existingIds[l.id] = true;
+          added++;
+        }
+      });
+      logs.sort(function(a,b){ return b.id - a.id; });
+      save();
+      render();
+      toast('Imported ' + added + ' log' + (added === 1 ? '' : 's'));
+    } catch(err){
+      console.error('LAZLOG import error:', err);
+      toast('Import failed — invalid backup file');
+    }
+  };
+  reader.readAsText(file);
+}
 
 function toISODate(d){
   const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
@@ -359,43 +418,75 @@ function saveApiKey(){
 }
 
 let lastAskResult = null;
+let askMessages = [];
+let askThread = [];
+
+const ASK_SYSTEM_PROMPT = 'You are a friendly, direct personal nutritionist and home chef helping someone refine a meal idea through conversation. They do not understand nutrition jargon, so keep language plain and simple. The conversation may involve them adjusting or refining their idea across multiple messages (swapping ingredients, changing cooking method, asking "what if" questions) — always evaluate the CURRENT full state of what they are describing, using the whole conversation for context. For every message, respond ONLY with valid JSON in this exact shape, no other text: {"dish":"short name of the current meal idea","rating":"green"|"yellow"|"orange"|"red","verdict":"one direct sentence","details":"2-3 sentence plain-language explanation","alternatives":[{"name":"short alt idea","reason":"one short plain-language sentence on why this specific swap is healthier"},{"name":"short alt idea","reason":"..."},{"name":"short alt idea","reason":"..."}]}';
 
 function openAskModal(){
   const key = localStorage.getItem('lazlog_groq_key');
   if(!key){ toast('Add your Groq API key first'); openSettings(); return; }
-  document.getElementById('askInput').value = '';
+  const input = document.getElementById('askInput');
+  input.value = '';
+  input.placeholder = 'e.g. cottage cheese with granola and honey, or frying up some chicken tenders...';
   document.getElementById('askResult').innerHTML = '';
+  askMessages = [{ role: 'system', content: ASK_SYSTEM_PROMPT }];
+  askThread = [];
   lastAskResult = null;
-  resetAskButtons();
+  renderAskThread();
+  renderAskButtons();
   document.getElementById('askModal').classList.add('show');
 }
 function closeAskModal(){ document.getElementById('askModal').classList.remove('show'); }
 
-function resetAskButtons(){
-  document.getElementById('askBtns').innerHTML =
-    '<button class="btn-quiet" onclick="closeAskModal()">Close</button>' +
-    '<button class="btn-danger" style="background:var(--gold-dim); border-color:var(--gold); color:var(--gold);" onclick="submitAsk()" id="askSubmitBtn">Ask</button>';
+function renderAskThread(){
+  const el = document.getElementById('askThread');
+  el.innerHTML = askThread.map(function(m){
+    if(m.role === 'user'){
+      return '<div class="ask-msg-user">' + m.text + '</div>';
+    }
+    const dotEmoji = { green: '🟢', yellow: '🟡', orange: '🟠', red: '🔴' }[m.rating] || '⚪';
+    return '<div class="ask-msg-ai"><span>' + dotEmoji + '</span><span>' + m.text + '</span></div>';
+  }).join('');
+  el.scrollTop = el.scrollHeight;
+}
+
+function renderAskButtons(loading){
+  let html = '<button class="btn-quiet" onclick="closeAskModal()">Close</button>';
+  if(lastAskResult && !loading){
+    html += '<button class="btn-quiet" style="border-color:var(--teal); color:var(--teal);" onclick="logAskResult()">Log It</button>';
+  }
+  html += '<button class="btn-danger" style="background:var(--gold-dim); border-color:var(--gold); color:var(--gold);" onclick="submitAsk()" id="askSubmitBtn"' + (loading ? ' disabled' : '') + '>' + (lastAskResult ? 'Refine' : 'Ask') + '</button>';
+  document.getElementById('askBtns').innerHTML = html;
 }
 
 async function submitAsk(){
-  const q = document.getElementById('askInput').value.trim();
-  if(!q) return;
+  const input = document.getElementById('askInput');
+  const q = input.value.trim();
+  if(!q){
+    toast(lastAskResult ? 'Type your refinement first' : 'Type something first');
+    input.focus();
+    return;
+  }
   const key = localStorage.getItem('lazlog_groq_key');
   if(!key){ toast('Add your Groq API key first'); openSettings(); return; }
 
+  askMessages.push({ role: 'user', content: q });
+  askThread.push({ role: 'user', text: q });
+  input.value = '';
+  renderAskThread();
+
   const resultEl = document.getElementById('askResult');
   resultEl.innerHTML = '<div class="analyzing"><div class="spinner"></div>Thinking it through...</div>';
-  document.getElementById('askSubmitBtn').disabled = true;
+  renderAskButtons(true);
 
   try{
-    const prompt = 'You are a friendly, direct personal nutritionist and home chef. Someone is thinking about eating or cooking this: "' + q + '". They do not understand nutrition jargon, so keep language plain and simple. Rate it with a traffic-light system: "green" (healthy, minimally processed), "yellow" (moderate, fine in normal portions), "orange" (processed/heavy, a caution), or "red" (poor choice - fried, sugary, very processed). Give a short direct verdict, a 2-3 sentence plain-language explanation, and 2-3 short concrete alternative ideas that would make it healthier while still being something they would actually want to eat. Respond ONLY with valid JSON in this exact shape, no other text: {"dish":"short name of what they described","rating":"green"|"yellow"|"orange"|"red","verdict":"one direct sentence","details":"2-3 sentence plain-language explanation","alternatives":["short alt 1","short alt 2","short alt 3"]}';
-
     const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
       body: JSON.stringify({
         model: 'qwen/qwen3.6-27b',
-        messages: [{ role: 'user', content: prompt }],
+        messages: askMessages,
         temperature: 0.5,
         max_completion_tokens: 500,
         reasoning_effort: 'none',
@@ -419,27 +510,38 @@ async function submitAsk(){
       throw new Error('Model response missing expected fields: ' + cleaned.slice(0,150));
     }
 
+    askMessages.push({ role: 'assistant', content: cleaned });
+
     const rating = ['green','yellow','orange','red'].includes(result.rating) ? result.rating : 'yellow';
     const dotEmoji = { green: '🟢', yellow: '🟡', orange: '🟠', red: '🔴' }[rating];
     const alts = Array.isArray(result.alternatives) ? result.alternatives : [];
 
-    lastAskResult = { q: q, dish: result.dish || q, rating: rating, verdict: result.verdict || '', details: result.details || '' };
+    lastAskResult = { dish: result.dish || q, rating: rating, verdict: result.verdict || '' };
+    askThread.push({ role: 'assistant', rating: rating, text: (result.verdict || '') });
+    renderAskThread();
 
     resultEl.innerHTML =
       '<span class="ask-badge" style="background:color-mix(in srgb, ' + colorHex(rating) + ' 18%, transparent); color:' + colorHex(rating) + ';">' + dotEmoji + ' ' + rating.toUpperCase() + '</span>' +
       '<div class="ask-dish">' + (result.dish || q) + '</div>' +
       '<div class="ask-verdict">' + (result.verdict || '') + '</div>' +
       '<div class="ask-details">' + (result.details || '') + '</div>' +
-      (alts.length ? '<div class="ask-alts-label">Healthier Alternatives</div><ul class="ask-alts">' + alts.map(function(a){ return '<li>' + a + '</li>'; }).join('') + '</ul>' : '');
+      (alts.length ? '<div class="ask-alts-label">Healthier Alternatives (tap for why)</div><ul class="ask-alts">' + alts.map(function(a){
+        const isObj = a && typeof a === 'object';
+        const name = isObj ? (a.name || 'Alternative') : a;
+        const reason = isObj ? (a.reason || '') : '';
+        return '<li class="ask-alt-item" onclick="this.classList.toggle(\'open\')">' +
+          '<div class="ask-alt-head"><span>' + name + '</span>' + (reason ? '<span class="ask-alt-chev">▾</span>' : '') + '</div>' +
+          (reason ? '<div class="ask-alt-reason">' + reason + '</div>' : '') +
+          '</li>';
+      }).join('') + '</ul>' : '');
 
-    document.getElementById('askBtns').innerHTML =
-      '<button class="btn-quiet" onclick="closeAskModal()">Close</button>' +
-      '<button class="btn-danger" style="background:var(--gold-dim); border-color:var(--gold); color:var(--gold);" onclick="logAskResult()">Log It</button>';
+    input.placeholder = 'Refine it — e.g. "what if I bake it instead" or "swap the honey for..."';
+    renderAskButtons(false);
 
   } catch(err){
     console.error('LAZLOG Ask My Chef error:', err);
     resultEl.innerHTML = '<div class="empty-note">Couldn\'t get an answer — check the browser console for details, or try rephrasing.</div>';
-    resetAskButtons();
+    renderAskButtons(false);
   }
 }
 
