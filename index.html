@@ -34,6 +34,11 @@
   .day-label{font-size:13px; font-weight:600; text-align:center; flex:1;}
   .day-label .today-tag{display:block; font-size:9.5px; color:var(--teal); font-weight:600; letter-spacing:0.5px; margin-top:1px;}
 
+  .trend-strip{display:flex; justify-content:space-between; gap:4px; margin-bottom:14px; padding:0 2px;}
+  .trend-dot-wrap{display:flex; flex-direction:column; align-items:center; gap:5px; cursor:pointer; flex:1; padding:4px 0;}
+  .trend-dot{width:13px; height:13px; border-radius:50%; transition:opacity 0.15s, box-shadow 0.15s;}
+  .trend-daylabel{font-size:9px; color:var(--text-dim); font-weight:600; letter-spacing:0.5px;}
+
   .verdict{background:linear-gradient(135deg, var(--card), var(--card-2)); border:1px solid var(--border-2); border-radius:14px; padding:14px 16px; margin-bottom:18px;}
   .verdict-top{display:flex; align-items:center; gap:10px; margin-bottom:8px;}
   .day-badge{display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:700; letter-spacing:0.5px; padding:5px 11px; border-radius:20px; white-space:nowrap;}
@@ -137,7 +142,11 @@
   .ask-alt-chev{font-size:10px; color:var(--text-dim); transition:transform 0.2s; flex-shrink:0;}
   .ask-alt-item.open .ask-alt-chev{transform:rotate(180deg);}
   .ask-alt-reason{max-height:0; overflow:hidden; font-size:11.5px; color:var(--text-dim); line-height:1.4; transition:max-height 0.25s ease, margin-top 0.25s ease;}
-  .ask-alt-item.open .ask-alt-reason{max-height:120px; margin-top:6px;}
+  .ask-alt-item.open .ask-alt-reason{max-height:160px; margin-top:6px;}
+  .ask-alt-actions{display:flex; gap:6px; margin-top:8px;}
+  .ask-alt-actions button{flex:1; background:var(--card); border:1px solid var(--border-2); color:var(--text); font-size:10.5px; font-weight:600; padding:6px 4px; border-radius:7px; cursor:pointer;}
+  .ask-alt-actions button:first-child{border-color:var(--teal); color:var(--teal);}
+  .ask-alt-actions button:last-child{border-color:var(--gold); color:var(--gold);}
   .ask-thread{max-height:150px; overflow-y:auto; display:flex; flex-direction:column; gap:6px; margin-bottom:10px;}
   .ask-thread:empty{display:none; margin-bottom:0;}
   .ask-msg-user{align-self:flex-end; max-width:85%; background:var(--gold-dim); border:1px solid rgba(201,164,92,0.25); color:var(--text); font-size:12px; padding:7px 11px; border-radius:10px 10px 2px 10px;}
@@ -201,6 +210,8 @@
     <button id="nextDayBtn" onclick="shiftDay(1)">▶</button>
   </div>
 
+  <div class="trend-strip" id="trendStrip"></div>
+
   <div class="verdict">
     <div class="verdict-top">
       <span class="day-badge" id="dayBadge"><span class="dot"></span><span id="dayBadgeText">—</span></span>
@@ -249,6 +260,7 @@
         <button onclick="logWeight()">Log</button>
       </div>
       <div class="weight-latest" id="weightLatest"></div>
+      <div id="weightSparkline"></div>
     </div>
   </section>
 
@@ -274,8 +286,10 @@
 <div class="tab-content" id="tab-plan">
   <section>
     <div class="section-label">Meal Plan</div>
-    <div class="section-caption">Generates a full day of realistic meal ideas plus a shopping list you can send straight to Grocery.</div>
+    <div class="section-caption">Generates a full day of realistic meal ideas plus a shopping list you can send straight to Grocery. Not happy with one meal? Regenerate just that one and keep the rest.</div>
     <div class="row-card" style="margin-bottom:14px;">
+      <div style="font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--text-dim); font-weight:600; margin-bottom:8px;">What do you have on hand?</div>
+      <textarea id="pantryInput" placeholder="e.g. eggs, chicken breast, spinach, rice..." onchange="savePantry()" style="width:100%; background:var(--card-2); border:1px solid var(--border); border-radius:10px; padding:10px 12px; color:var(--text); font-family:'DM Sans', sans-serif; font-size:13px; min-height:48px; resize:vertical; margin-bottom:12px;"></textarea>
       <button class="btn-gold" style="width:100%; padding:11px; border-radius:10px; font-weight:700; font-size:13px;" onclick="generatePlan()" id="planGenBtn">Generate a Day's Plan</button>
     </div>
     <div id="planContent"></div>
@@ -444,6 +458,11 @@ function shiftDay(delta){
   selectedDate = iso;
   render();
 }
+function jumpToDay(iso){
+  if(iso > todayISO()) return;
+  selectedDate = iso;
+  render();
+}
 function getSelectedLogs(){ return logs.filter(function(l){ return l.date === selectedDate; }); }
 function updateDayLabel(){
   const parts = selectedDate.split('-').map(Number);
@@ -486,6 +505,47 @@ function computeDayBadge(dayLogs){
   return { emoji:'🔴', label:'SCREWUP', color:'var(--c-red)' };
 }
 
+function renderTrendStrip(){
+  const el = document.getElementById('trendStrip');
+  const today = todayISO();
+  let html = '';
+  for(let i = 6; i >= 0; i--){
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const iso = toISODate(d);
+    const dayLogs = logs.filter(function(l){ return l.date === iso; });
+    const badge = computeDayBadge(dayLogs);
+    const isSelected = iso === selectedDate;
+    const dayLabel = d.toLocaleDateString([], { weekday: 'narrow' });
+    html += '<div class="trend-dot-wrap" onclick="jumpToDay(\'' + iso + '\')">' +
+      '<div class="trend-dot" style="background:' + badge.color + '; opacity:' + (isSelected ? '1' : '0.55') + '; box-shadow:' + (isSelected ? '0 0 0 2px var(--gold)' : 'none') + ';" title="' + iso + ': ' + badge.label + '"></div>' +
+      '<div class="trend-daylabel">' + (iso === today ? '•' : dayLabel) + '</div></div>';
+  }
+  el.innerHTML = html;
+}
+
+function renderWeightSparkline(){
+  const container = document.getElementById('weightSparkline');
+  if(!container) return;
+  const weightLogs = logs.filter(function(l){ return l.type === 'Weight'; }).slice(0, 15).reverse();
+  if(weightLogs.length < 2){ container.innerHTML = ''; return; }
+  const values = weightLogs.map(function(l){ return parseFloat(l.value); }).filter(function(v){ return !isNaN(v); });
+  if(values.length < 2){ container.innerHTML = ''; return; }
+  const min = Math.min.apply(null, values), max = Math.max.apply(null, values);
+  const range = (max - min) || 1;
+  const w = 260, h = 36, pad = 4;
+  const points = values.map(function(v, i){
+    const x = pad + (i / (values.length - 1)) * (w - 2 * pad);
+    const y = h - pad - ((v - min) / range) * (h - 2 * pad);
+    return x + ',' + y;
+  }).join(' ');
+  container.innerHTML =
+    '<svg width="100%" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none" style="display:block; margin-top:8px;">' +
+    '<polyline points="' + points + '" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>' +
+    '</svg>' +
+    '<div style="font-size:10px; color:var(--text-dim); margin-top:4px;">Last ' + values.length + ' entries · low ' + min + ' · high ' + max + '</div>';
+}
+
 function computeVerdict(dayLogs){
   function count(t){ return dayLogs.filter(function(l){ return l.type === t; }).length; }
   const smoke = count('Smoked'), junk = count('Junk'), water = count('Water');
@@ -503,6 +563,7 @@ function computeVerdict(dayLogs){
 /* ============ HOME RENDER ============ */
 function render(){
   updateDayLabel();
+  renderTrendStrip();
   const dayLogs = getSelectedLogs();
 
   const badge = computeDayBadge(dayLogs);
@@ -523,6 +584,7 @@ function render(){
   document.getElementById('weightLatest').innerHTML = weightLogs.length
     ? 'Latest: <span>' + weightLogs[0].value + '</span> — logged ' + weightLogs[0].date
     : 'No weight logged yet.';
+  renderWeightSparkline();
 
   const feelLogs = dayLogs.filter(function(l){ return l.type==='Feeling'; });
   document.querySelectorAll('.feel-btn').forEach(function(btn){
@@ -734,10 +796,11 @@ async function handlePhoto(event){
 
 /* ============ ASK MY CHEF ============ */
 let lastAskResult = null;
+let lastAskAlts = [];
 let askMessages = [];
 let askThread = [];
 
-const ASK_SYSTEM_PROMPT = 'You are a friendly, direct personal nutritionist and home chef helping someone refine a meal idea through conversation. They do not understand nutrition jargon, so keep language plain and simple. The conversation may involve them adjusting or refining their idea across multiple messages (swapping ingredients, changing cooking method, asking "what if" questions) — always evaluate the CURRENT full state of what they are describing, using the whole conversation for context. Beyond healthiness, ALWAYS also assess how easy the food is to digest (things like fat content, fiber, spice level, dairy, fried/greasy prep, portion size, common irritants) — this matters to them as much as nutrition does. For every message, respond ONLY with valid JSON in this exact shape, no other text: {"dish":"short name of the current meal idea","rating":"green"|"yellow"|"orange"|"red","verdict":"one direct sentence","details":"2-3 sentence plain-language explanation","digestion":{"rating":"easy"|"moderate"|"hard","note":"one short plain-language reason, e.g. high fat and fried, or light and easy on the gut"},"alternatives":[{"name":"short alt idea","reason":"one short plain-language sentence on why this specific swap is healthier and/or easier to digest"},{"name":"short alt idea","reason":"..."},{"name":"short alt idea","reason":"..."}]}';
+const ASK_SYSTEM_PROMPT = 'You are a friendly, direct personal nutritionist and home chef helping someone refine a meal idea through conversation. They do not understand nutrition jargon, so keep language plain and simple. The conversation may involve them adjusting or refining their idea across multiple messages (swapping ingredients, changing cooking method, asking "what if" questions) — always evaluate the CURRENT full state of what they are describing, using the whole conversation for context. Beyond healthiness, ALWAYS also assess how easy the food is to digest (things like fat content, fiber, spice level, dairy, fried/greasy prep, portion size, common irritants) — this matters to them as much as nutrition does. For every message, respond ONLY with valid JSON in this exact shape, no other text: {"dish":"short name of the current meal idea","rating":"green"|"yellow"|"orange"|"red","verdict":"one direct sentence","details":"2-3 sentence plain-language explanation","digestion":{"rating":"easy"|"moderate"|"hard","note":"one short plain-language reason, e.g. high fat and fried, or light and easy on the gut"},"alternatives":[{"name":"short alt idea","rating":"green"|"yellow"|"orange"|"red","reason":"one short plain-language sentence on why this specific swap is healthier and/or easier to digest"},{"name":"short alt idea","rating":"...","reason":"..."},{"name":"short alt idea","rating":"...","reason":"..."}]}';
 
 function openAskModal(){
   const key = localStorage.getItem('lazlog_groq_key');
@@ -749,6 +812,7 @@ function openAskModal(){
   askMessages = [{ role: 'system', content: ASK_SYSTEM_PROMPT }];
   askThread = [];
   lastAskResult = null;
+  lastAskAlts = [];
   renderAskThread();
   renderAskButtons();
   document.getElementById('askModal').classList.add('show');
@@ -826,6 +890,7 @@ async function submitAsk(){
     const alts = Array.isArray(result.alternatives) ? result.alternatives : [];
 
     lastAskResult = { dish: result.dish || q, rating: rating, verdict: result.verdict || '', digestion: result.digestion || null };
+    lastAskAlts = alts;
     askThread.push({ role: 'assistant', rating: rating, text: (result.verdict || '') });
     renderAskThread();
 
@@ -835,13 +900,15 @@ async function submitAsk(){
       '<div class="ask-dish">' + (result.dish || q) + '</div>' +
       '<div class="ask-verdict">' + (result.verdict || '') + '</div>' +
       '<div class="ask-details">' + (result.details || '') + '</div>' +
-      (alts.length ? '<div class="ask-alts-label">Healthier Alternatives (tap for why)</div><ul class="ask-alts">' + alts.map(function(a){
+      (alts.length ? '<div class="ask-alts-label">Healthier Alternatives (tap for why)</div><ul class="ask-alts">' + alts.map(function(a, i){
         const isObj = a && typeof a === 'object';
         const name = isObj ? (a.name || 'Alternative') : a;
         const reason = isObj ? (a.reason || '') : '';
         return '<li class="ask-alt-item" onclick="this.classList.toggle(\'open\')">' +
           '<div class="ask-alt-head"><span>' + name + '</span>' + (reason ? '<span class="ask-alt-chev">▾</span>' : '') + '</div>' +
-          (reason ? '<div class="ask-alt-reason">' + reason + '</div>' : '') + '</li>';
+          (reason ? '<div class="ask-alt-reason">' + reason +
+            '<div class="ask-alt-actions"><button onclick="event.stopPropagation(); logAltByIndex(' + i + ')">Log This</button><button onclick="event.stopPropagation(); discussAltByIndex(' + i + ')">Discuss This</button></div>' +
+            '</div>' : '') + '</li>';
       }).join('') + '</ul>' : '');
 
     input.placeholder = 'Refine it — e.g. "what if I bake it instead" or "swap the honey for..."';
@@ -862,42 +929,53 @@ function logAskResult(){
   closeAskModal();
 }
 
+function logAltByIndex(i){
+  const a = lastAskAlts[i];
+  if(!a) return;
+  const isObj = a && typeof a === 'object';
+  const name = isObj ? (a.name || 'Alternative') : a;
+  const reason = isObj ? (a.reason || '') : '';
+  const rating = (isObj && ['green','yellow','orange','red'].includes(a.rating)) ? a.rating : 'green';
+  const dotEmoji = { green: '🟢', yellow: '🟡', orange: '🟠', red: '🔴' }[rating];
+  addLog('Meal', dotEmoji + ' ' + name + (reason ? ' — ' + reason : ''), { rating: rating });
+  toast('Logged: ' + name);
+}
+
+function discussAltByIndex(i){
+  const a = lastAskAlts[i];
+  if(!a) return;
+  const name = (a && typeof a === 'object') ? (a.name || 'that alternative') : a;
+  document.getElementById('askInput').value = 'Let\'s go with ' + name + ' instead — re-evaluate that.';
+  submitAsk();
+}
+
 /* ============ MEAL PLAN ============ */
+let planLoadingIndex = -1;
+
+function savePantry(){
+  localStorage.setItem('lazlog_pantry', document.getElementById('pantryInput').value.trim());
+}
+function loadPantry(){
+  document.getElementById('pantryInput').value = localStorage.getItem('lazlog_pantry') || '';
+}
+
 async function generatePlan(){
   const key = localStorage.getItem('lazlog_groq_key');
   if(!key){ toast('Add your Groq API key first'); goToSettingsForKey(); return; }
+  savePantry();
+  const pantry = document.getElementById('pantryInput').value.trim();
   const btn = document.getElementById('planGenBtn');
   btn.disabled = true;
   document.getElementById('planContent').innerHTML = '<div class="analyzing"><div class="spinner"></div>Building your day...</div>';
 
   try{
-    const prompt = 'You are a home chef and nutritionist planning meals for someone who wants simple, realistic, healthy food they will actually cook — not fancy recipes. Plan ONE day: Breakfast, Lunch, Dinner, and one Snack. For each give a short realistic idea (what to make/eat, not a full recipe) and rate it green/yellow/orange/red. Then compile a consolidated shopping list of every ingredient needed across all meals, deduplicated, each tagged with a rough category (Produce, Protein, Dairy, Pantry, Frozen, Other). Respond ONLY with valid JSON in this exact shape, no other text: {"meals":[{"slot":"Breakfast","idea":"...","rating":"green"},{"slot":"Lunch","idea":"...","rating":"..."},{"slot":"Dinner","idea":"...","rating":"..."},{"slot":"Snack","idea":"...","rating":"..."}],"shopping_list":[{"item":"...","category":"Produce"}]}';
+    const pantryLine = pantry ? ' The user has these ingredients on hand and would like the plan to make good use of them where reasonable, though a few extra items are fine: ' + pantry + '.' : '';
+    const prompt = 'You are a home chef and nutritionist planning meals for someone who wants simple, realistic, healthy food they will actually cook — not fancy recipes. Plan ONE day: Breakfast, Lunch, Dinner, and one Snack. For each give a short realistic idea (what to make/eat, not a full recipe) and rate it green/yellow/orange/red.' + pantryLine + ' Then compile a consolidated shopping list of every ingredient needed across all meals that the user does NOT already have on hand, deduplicated, each tagged with a rough category (Produce, Protein, Dairy, Pantry, Frozen, Other). Respond ONLY with valid JSON in this exact shape, no other text: {"meals":[{"slot":"Breakfast","idea":"...","rating":"green"},{"slot":"Lunch","idea":"...","rating":"..."},{"slot":"Dinner","idea":"...","rating":"..."},{"slot":"Snack","idea":"...","rating":"..."}],"shopping_list":[{"item":"...","category":"Produce"}]}';
 
-    const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
-      body: JSON.stringify({
-        model: 'qwen/qwen3.6-27b',
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.6,
-        max_completion_tokens: 900,
-        reasoning_effort: 'none',
-        reasoning_format: 'hidden',
-        response_format: { type: 'json_object' }
-      })
-    });
-    if(!resp.ok){
-      const errText = await resp.text().catch(function(){ return ''; });
-      throw new Error('API error ' + resp.status + (errText ? ': ' + errText.slice(0,150) : ''));
-    }
-    const data = await resp.json();
-    const raw = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
-    console.log('LAZLOG Plan raw response:', raw);
-    const cleaned = raw.replace(/```json/gi, '').replace(/```/g, '').trim();
-    const result = JSON.parse(cleaned);
+    const result = await callGroqText(prompt, 900);
     if(!Array.isArray(result.meals)){ throw new Error('Model response missing meals array'); }
 
-    mealPlan = { generatedAt: new Date().toISOString(), meals: result.meals, shopping_list: Array.isArray(result.shopping_list) ? result.shopping_list : [] };
+    mealPlan = { generatedAt: new Date().toISOString(), meals: result.meals, shopping_list: Array.isArray(result.shopping_list) ? result.shopping_list : [], shoppingStale: false };
     savePlan();
     renderPlan();
     toast('Plan generated');
@@ -910,17 +988,113 @@ async function generatePlan(){
   }
 }
 
+async function callGroqText(prompt, maxTokens){
+  const key = localStorage.getItem('lazlog_groq_key');
+  const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+    body: JSON.stringify({
+      model: 'qwen/qwen3.6-27b',
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.6,
+      max_completion_tokens: maxTokens,
+      reasoning_effort: 'none',
+      reasoning_format: 'hidden',
+      response_format: { type: 'json_object' }
+    })
+  });
+  if(!resp.ok){
+    const errText = await resp.text().catch(function(){ return ''; });
+    throw new Error('API error ' + resp.status + (errText ? ': ' + errText.slice(0,150) : ''));
+  }
+  const data = await resp.json();
+  const raw = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
+  console.log('LAZLOG Plan raw response:', raw);
+  const cleaned = raw.replace(/```json/gi, '').replace(/```/g, '').trim();
+  return JSON.parse(cleaned);
+}
+
+async function regenerateMeal(index){
+  if(!mealPlan || !mealPlan.meals[index]) return;
+  const key = localStorage.getItem('lazlog_groq_key');
+  if(!key){ toast('Add your Groq API key first'); goToSettingsForKey(); return; }
+
+  const slot = mealPlan.meals[index].slot;
+  const pantry = document.getElementById('pantryInput').value.trim();
+  const others = mealPlan.meals.filter(function(m, i){ return i !== index; }).map(function(m){ return m.slot + ': ' + m.idea; }).join('; ');
+
+  planLoadingIndex = index;
+  renderPlan();
+
+  try{
+    const pantryLine = pantry ? ' They have these ingredients on hand and would like it to make use of them where reasonable: ' + pantry + '.' : '';
+    const prompt = 'You are a home chef planning one meal for someone who wants simple, realistic, healthy food they will actually cook. Suggest a new idea for their ' + slot + ' today. Their other meals today are already set as: ' + others + ' — keep this one different from those, don\'t repeat the same main ingredient unnecessarily.' + pantryLine + ' Respond ONLY with valid JSON, no other text: {"idea":"short realistic idea for the ' + slot + '","rating":"green"|"yellow"|"orange"|"red"}';
+
+    const result = await callGroqText(prompt, 250);
+    if(!result.idea){ throw new Error('Model response missing idea'); }
+
+    mealPlan.meals[index] = { slot: slot, idea: result.idea, rating: ['green','yellow','orange','red'].includes(result.rating) ? result.rating : 'yellow' };
+    mealPlan.shoppingStale = true;
+    savePlan();
+    toast(slot + ' updated');
+  } catch(err){
+    console.error('LAZLOG regenerate meal error:', err);
+    toast('Regeneration failed — check console');
+  } finally {
+    planLoadingIndex = -1;
+    renderPlan();
+  }
+}
+
+async function refreshShoppingList(){
+  if(!mealPlan || !mealPlan.meals) return;
+  const key = localStorage.getItem('lazlog_groq_key');
+  if(!key){ toast('Add your Groq API key first'); goToSettingsForKey(); return; }
+  const pantry = document.getElementById('pantryInput').value.trim();
+
+  const btn = document.getElementById('refreshShopBtn');
+  if(btn) btn.disabled = true;
+
+  try{
+    const mealsList = mealPlan.meals.map(function(m){ return m.slot + ': ' + m.idea; }).join('; ');
+    const pantryLine = pantry ? ' The user already has these on hand, do not include them: ' + pantry + '.' : '';
+    const prompt = 'Given this day of meals: ' + mealsList + ' — compile a consolidated shopping list of every ingredient needed, deduplicated, each tagged with a rough category (Produce, Protein, Dairy, Pantry, Frozen, Other).' + pantryLine + ' Respond ONLY with valid JSON, no other text: {"shopping_list":[{"item":"...","category":"Produce"}]}';
+
+    const result = await callGroqText(prompt, 500);
+    mealPlan.shopping_list = Array.isArray(result.shopping_list) ? result.shopping_list : [];
+    mealPlan.shoppingStale = false;
+    savePlan();
+    renderPlan();
+    toast('Shopping list refreshed');
+  } catch(err){
+    console.error('LAZLOG refresh shopping list error:', err);
+    toast('Refresh failed — check console');
+  } finally {
+    if(btn) btn.disabled = false;
+  }
+}
+
 function renderPlan(){
+  loadPantry();
   const el = document.getElementById('planContent');
   if(!mealPlan || !mealPlan.meals || !mealPlan.meals.length){
     el.innerHTML = '<div class="empty-note">No plan yet — generate one above.</div>';
     return;
   }
   const dotFor = { green: '🟢', yellow: '🟡', orange: '🟠', red: '🔴' };
-  let html = mealPlan.meals.map(function(m){
+  let html = mealPlan.meals.map(function(m, i){
+    if(i === planLoadingIndex){
+      return '<div class="plan-meal"><div class="plan-meal-head"><span class="plan-slot">' + (m.slot || '') + '</span></div><div class="analyzing"><div class="spinner"></div>Regenerating...</div></div>';
+    }
     const dot = dotFor[m.rating] || '⚪';
-    return '<div class="plan-meal"><div class="plan-meal-head"><span>' + dot + '</span><span class="plan-slot">' + (m.slot || '') + '</span></div><div class="plan-idea">' + (m.idea || '') + '</div></div>';
+    return '<div class="plan-meal"><div class="plan-meal-head"><span>' + dot + '</span><span class="plan-slot">' + (m.slot || '') + '</span>' +
+      '<button onclick="regenerateMeal(' + i + ')" style="margin-left:auto; background:var(--card-2); border:1px solid var(--border); color:var(--text-dim); border-radius:8px; padding:4px 10px; font-size:11px; cursor:pointer;">🔄 Try Again</button></div>' +
+      '<div class="plan-idea">' + (m.idea || '') + '</div></div>';
   }).join('');
+
+  if(mealPlan.shoppingStale){
+    html += '<div style="font-size:11.5px; color:var(--c-orange); margin:10px 0;">Shopping list may not reflect your swapped meal(s) yet.</div>';
+  }
 
   if(mealPlan.shopping_list && mealPlan.shopping_list.length){
     html += '<div class="section-label" style="margin-top:16px;">Shopping List Preview</div>';
@@ -937,6 +1111,9 @@ function renderPlan(){
       });
     });
     html += '<button class="btn-teal" style="width:100%; padding:10px; border-radius:9px; font-weight:700; font-size:13px; cursor:pointer; margin-top:10px;" onclick="sendPlanToGrocery()">Send Shopping List to Grocery Tab</button>';
+    if(mealPlan.shoppingStale){
+      html += '<button id="refreshShopBtn" class="btn-quiet" style="width:100%; padding:9px; border-radius:9px; font-weight:600; font-size:12px; cursor:pointer; margin-top:8px;" onclick="refreshShoppingList()">Refresh Shopping List from Current Plan</button>';
+    }
   }
   el.innerHTML = html;
 }
