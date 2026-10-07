@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 300" width="1200" height="300" role="img" aria-labelledby="t d">
+<title id="t">LAZLOG</title><desc id="d">LAZLOG, a private diet and habit tracker</desc>
+<defs><radialGradient id="g" cx="50%" cy="0%" r="90%"><stop offset="0" stop-color="#1b2133"/><stop offset="1" stop-color="#08090d"/></radialGradient></defs>
+<rect width="1200" height="300" rx="20" fill="url(#g)"/>
+<g transform="translate(120 150) scale(3.4) translate(-17 -17)"><g fill="none" stroke-width="4.2" stroke-linecap="round" transform="rotate(-90 17 17)"><circle cx="17" cy="17" r="12" stroke="#3ddc84" stroke-dasharray="11 64.4"/><circle cx="17" cy="17" r="12" stroke="#f2c94c" stroke-dasharray="11 64.4" stroke-dashoffset="-18.85"/><circle cx="17" cy="17" r="12" stroke="#f2994a" stroke-dasharray="11 64.4" stroke-dashoffset="-37.7"/><circle cx="17" cy="17" r="12" stroke="#eb5757" stroke-dasharray="11 64.4" stroke-dashoffset="-56.55"/></g><circle cx="17" cy="17" r="3.2" fill="#e8e6e1"/></g>
+<text x="215" y="150" font-family="ui-sans-serif,-apple-system,Segoe UI,Roboto,Arial,sans-serif" font-size="84" font-weight="800" letter-spacing="12" fill="#e8e6e1">LAZ<tspan fill="#8fb0ff">LOG</tspan></text>
+<text x="219" y="200" font-family="ui-sans-serif,-apple-system,Segoe UI,Roboto,Arial,sans-serif" font-size="28" fill="#9a98a4">Log your day. Get the honest verdict.</text>
+<g font-family="ui-sans-serif,-apple-system,Segoe UI,Roboto,Arial,sans-serif" font-size="17" font-weight="700" fill="#08090d"><rect x="219" y="224" width="108" height="30" rx="15" fill="#3ddc84"/><text x="273" y="244" text-anchor="middle">LOCAL-FIRST</text><rect x="339" y="224" width="82" height="30" rx="15" fill="#f2c94c"/><text x="380" y="244" text-anchor="middle">PRIVATE</text><rect x="433" y="224" width="62" height="30" rx="15" fill="#f2994a"/><text x="464" y="244" text-anchor="middle">PWA</text></g>
+</svg>
