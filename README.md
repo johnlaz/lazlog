@@ -63,6 +63,9 @@ Hosted on GitHub Pages from the repository root.
 
 ## Changelog
 
+### 1.0.1
+- New app icon (shutter-and-plate mark), used in the header, landing page and README.
+
 ### 1.0.0
 - Split into landing page (root) and app (`/app`).
 - Installable PWA: manifest, service worker (network-first HTML, cache-first assets), offline support, 192/512 icons, screenshots.
