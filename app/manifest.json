@@ -1,0 +1,22 @@
+{
+  "id": "/lazlog/app/",
+  "name": "LAZLOG — Diet & Habit Tracker",
+  "short_name": "LAZLOG",
+  "description": "A private, local-first diet and habit tracker with AI meal analysis.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#08090d",
+  "theme_color": "#08090d",
+  "categories": ["health", "lifestyle", "food"],
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "screenshots": [
+    { "src": "shot-narrow-1.png", "sizes": "1080x1920", "type": "image/png", "form_factor": "narrow", "label": "Daily verdict and quick tap logging" },
+    { "src": "shot-narrow-2.png", "sizes": "1080x1920", "type": "image/png", "form_factor": "narrow", "label": "AI meal plan with shopping list" },
+    { "src": "shot-wide-1.png", "sizes": "1920x1080", "type": "image/png", "form_factor": "wide", "label": "LAZLOG on desktop" }
+  ]
+}

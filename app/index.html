@@ -1,0 +1,1447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="LAZLOG — a private, local-first diet and habit tracker with AI meal analysis. Your data stays on your device.">
+<meta name="theme-color" content="#08090d">
+<meta name="color-scheme" content="dark">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="LAZLOG">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>LAZLOG — Daily Tracker</title>
+<style>
+  :root{
+    --sans:ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+    --bg:#08090d; --card:#11131a; --card-2:#171a23;
+    --border:rgba(255,255,255,0.08); --border-2:rgba(255,255,255,0.14);
+    --text:#e8e6e1; --text-dim:#8a8894;
+    --accent:#8fb0ff; --accent-dim:rgba(143,176,255,0.12);
+    --teal:#2dd4bf; --teal-dim:rgba(45,212,191,0.12);
+    --red:#e8615c; --red-dim:rgba(232,97,92,0.12);
+    --c-green:#3ddc84; --c-yellow:#f2c94c; --c-orange:#f2994a; --c-red:#eb5757; --c-neutral:#8a8894;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:var(--sans);
+    min-height:100vh; padding:16px; padding-bottom:150px;
+    max-width:480px; margin-left:auto; margin-right:auto;
+  }
+  h1{font-family:var(--sans); font-size:24px; font-weight:700; color:var(--accent); margin:0; letter-spacing:0.5px;}
+  .sub{font-size:11px; color:var(--text-dim); margin-top:2px;}
+  header{border-bottom:1px solid var(--border); padding-bottom:14px; margin-bottom:14px;}
+
+  .day-nav{display:flex; align-items:center; justify-content:space-between; background:var(--card); border:1px solid var(--border); border-radius:12px; padding:8px 10px; margin-bottom:16px;}
+  .day-nav button{background:var(--card-2); border:1px solid var(--border); color:var(--text-dim); width:30px; height:30px; border-radius:8px; cursor:pointer; font-size:14px;}
+  .day-nav button:active{transform:scale(0.92);}
+  .day-nav button:disabled{opacity:0.3; cursor:default;}
+  .day-label{font-size:13px; font-weight:600; text-align:center; flex:1;}
+  .day-label .today-tag{display:block; font-size:11px; color:var(--teal); font-weight:600; letter-spacing:0.5px; margin-top:1px;}
+
+  .trend-strip{display:flex; justify-content:space-between; gap:4px; margin-bottom:14px; padding:0 2px;}
+  .trend-dot-wrap{display:flex; flex-direction:column; align-items:center; gap:5px; cursor:pointer; flex:1; padding:4px 0;}
+  .trend-dot{width:13px; height:13px; border-radius:50%; transition:opacity 0.15s, box-shadow 0.15s;}
+  .trend-daylabel{font-size:11px; color:var(--text-dim); font-weight:600; letter-spacing:0.5px;}
+
+  .verdict{background:linear-gradient(135deg, var(--card), var(--card-2)); border:1px solid var(--border-2); border-radius:14px; padding:14px 16px; margin-bottom:18px;}
+  .verdict-top{display:flex; align-items:center; gap:10px; margin-bottom:8px;}
+  .day-badge{display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:700; letter-spacing:0.5px; padding:5px 11px; border-radius:20px; white-space:nowrap;}
+  .day-badge .dot{width:9px; height:9px; border-radius:50%;}
+  .verdict-label{font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--text-dim); margin-bottom:4px;}
+  .verdict-text{font-size:14px; line-height:1.5; font-weight:500;}
+  .log-dot{width:8px; height:8px; border-radius:50%; margin-top:4px; flex-shrink:0;}
+
+  section{margin-bottom:20px;}
+  .section-label{font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--text-dim); margin-bottom:10px; font-weight:600;}
+  .section-caption{font-size:11.5px; color:var(--text-dim); margin:-6px 0 10px; line-height:1.4;}
+
+  .grid4{display:grid; grid-template-columns:repeat(4,1fr); gap:8px;}
+  .tap-btn{background:var(--card); border:1px solid var(--border); border-radius:14px; padding:12px 4px; display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer; color:var(--text);}
+  .tap-btn:active{transform:scale(0.95);}
+  .tap-btn .ic{font-size:20px;}
+  .tap-btn .lbl{font-size:11px; color:var(--text-dim); text-align:center; line-height:1.2;}
+  .tap-btn .count{font-family:var(--mono); font-size:15px; font-weight:500;}
+  .tap-btn.coffee .count{color:#d9a441;}
+  .tap-btn.water .count{color:var(--teal);}
+  .tap-btn.smoke .count{color:var(--red);}
+  .tap-btn.junk .count{color:var(--red);}
+  .tap-btn.wide{flex-direction:row; justify-content:center; gap:10px; padding:13px; margin-top:8px;}
+  .tap-btn.wide .lbl{font-size:12px;}
+  .tap-btn.photo{background:linear-gradient(180deg, var(--card), var(--accent-dim)); border-color:rgba(143,176,255,0.35);}
+  .tap-btn.chef{background:linear-gradient(180deg, var(--card), var(--teal-dim)); border-color:rgba(45,212,191,0.3);}
+
+  .row-card{background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px;}
+  .weight-row{display:flex; gap:8px; align-items:center;}
+  .weight-row input{flex:1; background:var(--card-2); border:1px solid var(--border); border-radius:10px; padding:10px 12px; color:var(--text); font-family:var(--mono); font-size:15px;}
+  .weight-row input:focus{outline:none; border-color:var(--accent);}
+  .weight-row button{background:var(--accent-dim); border:1px solid var(--accent); color:var(--accent); border-radius:10px; padding:10px 16px; font-weight:600; font-size:12px; cursor:pointer; white-space:nowrap;}
+  .weight-row button:active{transform:scale(0.96);}
+  .weight-latest{font-size:11px; color:var(--text-dim); margin-top:8px;}
+  .weight-latest span{color:var(--accent); font-family:var(--mono);}
+
+  .grid3{display:grid; grid-template-columns:repeat(3,1fr); gap:8px;}
+  .feel-btn{background:var(--card-2); border:1px solid var(--border); border-radius:10px; padding:10px 4px; font-size:12px; font-weight:500; color:var(--text-dim); cursor:pointer; text-align:center;}
+  .feel-btn[data-feel="Good"].active{background:color-mix(in srgb, var(--c-green) 18%, transparent); border-color:var(--c-green); color:var(--c-green);}
+  .feel-btn[data-feel="Okay"].active{background:color-mix(in srgb, var(--c-yellow) 18%, transparent); border-color:var(--c-yellow); color:var(--c-yellow);}
+  .feel-btn[data-feel="Rough"].active{background:color-mix(in srgb, var(--c-red) 18%, transparent); border-color:var(--c-red); color:var(--c-red);}
+
+  .timeline{max-height:220px; overflow-y:auto; display:flex; flex-direction:column; gap:6px;}
+  .log-item{background:var(--card); border:1px solid var(--border); border-radius:10px; padding:9px 12px; display:flex; gap:10px; align-items:flex-start; font-size:12.5px;}
+  .log-item .log-body{flex:1; display:flex; gap:10px; align-items:flex-start;}
+  .log-del{background:none; border:none; color:var(--text-dim); font-size:15px; line-height:1; cursor:pointer; padding:2px 4px; flex-shrink:0; margin-top:-1px;}
+  .log-del:active{color:var(--red); transform:scale(0.9);}
+  .log-time{font-family:var(--mono); font-size:11px; color:var(--text-dim); white-space:nowrap; margin-top:1px;}
+  .log-tag{color:var(--text-dim); font-weight:600; margin-right:4px;}
+  .empty-note{font-size:12px; color:var(--text-dim); font-style:italic; padding:8px 2px;}
+
+  footer{position:fixed; bottom:64px; left:0; right:0; background:linear-gradient(180deg, transparent, var(--bg) 30%); padding:12px 16px; display:flex; justify-content:center; z-index:20;}
+  footer form{width:100%; max-width:448px; position:relative;}
+  footer input{width:100%; background:var(--card); border:1px solid var(--border-2); border-radius:14px; padding:13px 60px 13px 16px; color:var(--text); font-size:14px;}
+  footer input:focus{outline:none; border-color:var(--accent);}
+  footer button{position:absolute; right:6px; top:6px; bottom:6px; background:var(--accent); border:none; color:#0a0d16; font-weight:700; font-size:12px; border-radius:9px; padding:0 16px; cursor:pointer;}
+  footer button:active{transform:scale(0.96);}
+
+  .bottom-nav{position:fixed; bottom:0; left:0; right:0; background:var(--card); border-top:1px solid var(--border-2); display:flex; z-index:30; padding-bottom:env(safe-area-inset-bottom);}
+  .nav-btn{flex:1; background:none; border:none; color:var(--text-dim); display:flex; flex-direction:column; align-items:center; gap:2px; padding:9px 4px 8px; cursor:pointer; font-family:var(--sans);}
+  .nav-btn .nav-ic{font-size:18px;}
+  .nav-btn .nav-lbl{font-size:11px; font-weight:600;}
+  .nav-btn.active{color:var(--accent);}
+
+  .tab-content{display:none;}
+  .tab-content.active{display:block;}
+
+  .confirm-bar{background:var(--card); border:1px solid var(--red); border-radius:12px; padding:10px 14px; display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; font-size:12px; gap:10px;}
+  .confirm-bar .btns{display:flex; gap:8px; flex-shrink:0;}
+  .confirm-bar button{border-radius:8px; padding:6px 12px; font-size:11px; font-weight:600; cursor:pointer; border:1px solid;}
+  .btn-danger{background:var(--red-dim); border-color:var(--red); color:var(--red);}
+  .btn-quiet{background:var(--card-2); border-color:var(--border); color:var(--text-dim);}
+  .btn-gold{background:var(--accent-dim); border-color:var(--accent); color:var(--accent);}
+  .btn-teal{background:var(--teal-dim); border-color:var(--teal); color:var(--teal);}
+
+  .toast{position:fixed; top:16px; left:50%; transform:translateX(-50%); background:var(--accent); color:#0a0d16; font-size:12px; font-weight:600; padding:8px 16px; border-radius:20px; opacity:0; pointer-events:none; transition:opacity 0.2s; z-index:80; max-width:90%; text-align:center;}
+  .toast.show{opacity:1;}
+
+  .modal-overlay{position:fixed; inset:0; background:rgba(0,0,0,0.6); display:none; align-items:center; justify-content:center; z-index:60; padding:20px;}
+  .modal-overlay.show{display:flex;}
+  .modal{background:var(--card); border:1px solid var(--border-2); border-radius:16px; padding:20px; width:100%; max-width:400px; max-height:85vh; overflow-y:auto; -webkit-overflow-scrolling:touch;}
+  .modal h2{font-family:var(--sans); font-size:17px; color:var(--accent); margin:0 0 6px;}
+  .modal p{font-size:12px; color:var(--text-dim); line-height:1.5; margin:0 0 14px;}
+  .modal input{width:100%; background:var(--card-2); border:1px solid var(--border); border-radius:10px; padding:11px 12px; color:var(--text); font-family:var(--mono); font-size:13px; margin-bottom:12px;}
+  .modal input:focus{outline:none; border-color:var(--accent);}
+  .modal-btns{display:flex; gap:8px; justify-content:flex-end;}
+  .modal-btns button{border-radius:9px; padding:9px 16px; font-size:12px; font-weight:600; cursor:pointer; border:1px solid;}
+
+  .analyzing{display:flex; align-items:center; gap:8px; font-size:12px; color:var(--accent); padding:8px 2px;}
+  .spinner{width:12px; height:12px; border:2px solid var(--accent-dim); border-top-color:var(--accent); border-radius:50%; animation:spin 0.7s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .ask-badge{display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:700; padding:5px 12px; border-radius:20px; margin-bottom:10px;}
+  .ask-dish{font-size:14px; font-weight:600; margin-bottom:4px;}
+  .ask-verdict{font-size:13px; font-weight:600; margin-bottom:8px; line-height:1.4;}
+  .ask-details{font-size:12.5px; color:var(--text-dim); line-height:1.5; margin-bottom:12px;}
+  .ask-alts-label{font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--text-dim); margin-bottom:6px; font-weight:600;}
+  .ask-alts{list-style:none; margin:0 0 4px; padding:0; display:flex; flex-direction:column; gap:6px;}
+  .ask-alt-item{font-size:12.5px; background:var(--card-2); border:1px solid var(--border); border-radius:8px; padding:8px 10px; cursor:pointer;}
+  .ask-alt-head{display:flex; justify-content:space-between; align-items:center; gap:8px;}
+  .ask-alt-chev{font-size:11px; color:var(--text-dim); transition:transform 0.2s; flex-shrink:0;}
+  .ask-alt-item.open .ask-alt-chev{transform:rotate(180deg);}
+  .ask-alt-reason{max-height:0; overflow:hidden; font-size:11.5px; color:var(--text-dim); line-height:1.4; transition:max-height 0.25s ease, margin-top 0.25s ease;}
+  .ask-alt-item.open .ask-alt-reason{max-height:160px; margin-top:6px;}
+  .ask-alt-actions{display:flex; gap:6px; margin-top:8px;}
+  .ask-alt-actions button{flex:1; background:var(--card); border:1px solid var(--border-2); color:var(--text); font-size:11.5px; font-weight:600; padding:6px 4px; border-radius:7px; cursor:pointer;}
+  .ask-alt-actions button:first-child{border-color:var(--teal); color:var(--teal);}
+  .ask-alt-actions button:last-child{border-color:var(--accent); color:var(--accent);}
+  .ask-thread{max-height:150px; overflow-y:auto; display:flex; flex-direction:column; gap:6px; margin-bottom:10px;}
+  .ask-thread:empty{display:none; margin-bottom:0;}
+  .ask-msg-user{align-self:flex-end; max-width:85%; background:var(--accent-dim); border:1px solid rgba(143,176,255,0.25); color:var(--text); font-size:12px; padding:7px 11px; border-radius:10px 10px 2px 10px;}
+  .ask-msg-ai{align-self:flex-start; max-width:88%; background:var(--card-2); border:1px solid var(--border); font-size:12px; padding:7px 11px; border-radius:10px 10px 10px 2px; display:flex; align-items:flex-start; gap:6px;}
+
+  .plan-meal{background:var(--card); border:1px solid var(--border); border-radius:12px; padding:12px; margin-bottom:8px;}
+  .plan-meal-head{display:flex; align-items:center; gap:8px; margin-bottom:4px;}
+  .plan-slot{font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-dim); font-weight:700;}
+  .plan-idea{font-size:13px; line-height:1.4;}
+  .shop-cat{font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--text-dim); font-weight:700; margin:14px 0 6px;}
+  .shop-item{background:var(--card); border:1px solid var(--border); border-radius:10px; padding:9px 12px; font-size:13px; margin-bottom:6px; display:flex; align-items:center; gap:10px; cursor:pointer;}
+  .shop-item.checked{opacity:0.45; text-decoration:line-through;}
+  .shop-checkbox{width:16px; height:16px; border-radius:5px; border:1.5px solid var(--border-2); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:11px;}
+  .shop-item.checked .shop-checkbox{background:var(--teal); border-color:var(--teal); color:#0a0a0f;}
+  .shop-del{margin-left:auto; background:none; border:none; color:var(--text-dim); font-size:14px; cursor:pointer; padding:2px 4px;}
+  .add-row{display:flex; gap:8px; margin-bottom:14px;}
+  .add-row input{flex:1; background:var(--card-2); border:1px solid var(--border); border-radius:10px; padding:10px 12px; color:var(--text); font-size:13px;}
+  .add-row input:focus{outline:none; border-color:var(--accent);}
+  .add-row button{background:var(--accent-dim); border:1px solid var(--accent); color:var(--accent); border-radius:10px; padding:0 16px; font-weight:600; font-size:13px; cursor:pointer;}
+
+  .scan-chip{background:var(--card); border:1px solid var(--border); border-radius:12px; padding:10px 12px; margin-bottom:8px; display:flex; align-items:center; gap:10px;}
+  .scan-chip .scan-info{flex:1;}
+  .scan-chip .scan-name{font-size:13px; font-weight:600;}
+  .scan-chip .scan-reason{font-size:11px; color:var(--text-dim); margin-top:1px;}
+  .scan-chip button{background:var(--card-2); border:1px solid var(--border); color:var(--text-dim); border-radius:8px; padding:5px 9px; font-size:11px; cursor:pointer;}
+
+  .legend{display:flex; gap:12px; flex-wrap:wrap; font-size:11.5px; color:var(--text-dim); margin-top:10px;}
+  .legend span{display:inline-flex; align-items:center; gap:4px;}
+  .legend .dot{width:7px; height:7px; border-radius:50%;}
+
+  /* ---- v1 polish ---- */
+  button,select{font-family:inherit; color:inherit;}
+  button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+  body{background:radial-gradient(900px 420px at 50% -120px, rgba(143,176,255,0.10), transparent 70%), var(--bg); background-attachment:fixed; padding-top:calc(16px + env(safe-area-inset-top)); -webkit-font-smoothing:antialiased;}
+  header{display:flex; align-items:center; justify-content:space-between; gap:12px;}
+  .brand{display:flex; align-items:center; gap:11px;}
+  .brand svg{width:34px; height:34px; flex-shrink:0;}
+  h1{font-size:19px; font-weight:800; letter-spacing:3.2px; color:var(--text);}
+  h1 span{color:var(--accent);}
+  .sub{font-size:11.5px; letter-spacing:0.2px;}
+  .ver{font-family:var(--mono); font-size:11px; color:var(--text-dim); border:1px solid var(--border); border-radius:20px; padding:3px 9px;}
+  .ic-svg{width:22px; height:22px; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; flex-shrink:0;}
+  .tap-btn{font:inherit;}
+  .tap-btn.coffee .ic-svg{color:#d9a441;} .tap-btn.water .ic-svg{color:var(--teal);} .tap-btn.smoke .ic-svg,.tap-btn.junk .ic-svg{color:var(--red);}
+  .tap-btn.photo .ic-svg{color:var(--accent);} .tap-btn.chef .ic-svg{color:var(--teal);}
+  .tap-btn.wide{width:100%;}
+  .tap-btn.wide .lbl{color:var(--text); font-weight:600;}
+  .feel-btn{font:inherit; font-size:13px; padding:12px 4px;}
+  .trend-dot-wrap{background:none; border:none; font:inherit; color:inherit;}
+  .nav-btn .nav-ic{display:inline-flex;} .nav-btn .nav-lbl{font-size:11px;}
+  .day-nav button{display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px;}
+  .day-nav button .ic-svg{width:16px; height:16px;}
+  .verdict{--v:var(--border-2); border-left:3px solid var(--v); background:linear-gradient(135deg, color-mix(in srgb, var(--v) 9%, var(--card)), var(--card)); padding:16px 18px; box-shadow:0 8px 28px rgba(0,0,0,0.35);}
+  .verdict-text{font-size:15.5px; line-height:1.5;}
+  .day-badge{font-size:12px; padding:6px 13px;}
+  .btn-row{display:flex; align-items:center; justify-content:center; gap:8px;}
+  .btn-row .ic-svg{width:17px; height:17px;}
+  select.field{width:100%; background:var(--card-2); border:1px solid var(--border); border-radius:10px; padding:11px 12px; font-size:13px; margin-bottom:12px; appearance:none; background-image:linear-gradient(45deg,transparent 50%,var(--text-dim) 50%),linear-gradient(135deg,var(--text-dim) 50%,transparent 50%); background-position:calc(100% - 18px) 50%,calc(100% - 13px) 50%; background-size:5px 5px,5px 5px; background-repeat:no-repeat;}
+  label.fl{display:block; font-size:11.5px; color:var(--text-dim); font-weight:600; margin-bottom:6px;}
+  .status-line{font-size:11.5px; color:var(--text-dim); margin-top:8px; line-height:1.4;}
+  .welcome{background:linear-gradient(135deg, var(--accent-dim), var(--card)); border:1px solid rgba(143,176,255,0.28); border-radius:14px; padding:16px; margin-bottom:16px;}
+  .welcome h2{margin:0 0 6px; font-size:15px;} .welcome p{margin:0 0 12px; font-size:13px; line-height:1.5; color:var(--text-dim);}
+  .welcome .row{display:flex; gap:8px;}
+  .welcome button{border-radius:9px; padding:9px 14px; font-size:12.5px; font-weight:600; cursor:pointer; border:1px solid;}
+  .update-bar{position:fixed; top:0; left:0; right:0; z-index:90; background:var(--accent); color:#0a0d16; font-size:13px; font-weight:600; padding:10px 16px; display:flex; justify-content:center; align-items:center; gap:12px; padding-top:calc(10px + env(safe-area-inset-top));}
+  .update-bar[hidden]{display:none;}
+  .update-bar button{background:#0a0d16; color:#fff; border:none; border-radius:8px; padding:6px 12px; font-weight:700; cursor:pointer; font-size:12px;}
+  .about{font-size:12px; color:var(--text-dim); line-height:1.6;}
+  .about a{color:var(--accent);}
+  .bottom-nav{left:50%; right:auto; width:100%; max-width:480px; transform:translateX(-50%); border-radius:16px 16px 0 0; border-left:1px solid var(--border); border-right:1px solid var(--border);}
+  footer{left:50%; right:auto; width:100%; max-width:480px; transform:translateX(-50%);}
+  .timeline .log-item:first-child{border-color:var(--border-2);}
+  @media (min-width:900px){ body{max-width:520px;} }
+  @media (prefers-reduced-motion:reduce){ *{transition:none !important; animation:none !important;} }
+  .rdot{display:inline-block; width:10px; height:10px; border-radius:50%; flex-shrink:0;}
+  .plan-meal-head .rdot,.scan-chip>span:first-child{align-self:center;}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="i-coffee" viewBox="0 0 24 24"><path d="M5 9h10v5a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4V9z"/><path d="M15 10h1.5a2.5 2.5 0 0 1 0 5H15"/><path d="M8 3v2M12 3v2"/></symbol>
+  <symbol id="i-water" viewBox="0 0 24 24"><path d="M12 3s6 6.2 6 10.5a6 6 0 0 1-12 0C6 9.2 12 3 12 3z"/></symbol>
+  <symbol id="i-smoke" viewBox="0 0 24 24"><path d="M3 15h13v3H3z"/><path d="M19 15v3M16 15v3"/><path d="M18 11c0-1.5 2-1.5 2-3.5M21 11c0-1 1-1 1-2"/></symbol>
+  <symbol id="i-junk" viewBox="0 0 24 24"><path d="M4 11a8 6 0 0 1 16 0z"/><path d="M3 14h18"/><path d="M4 17h16v1a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/></symbol>
+  <symbol id="i-camera" viewBox="0 0 24 24"><path d="M4 8h3l1.5-2h7L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></symbol>
+  <symbol id="i-chef" viewBox="0 0 24 24"><path d="M7 14a4 4 0 1 1 1.5-7.7A4 4 0 0 1 15.5 6.3 4 4 0 1 1 17 14z"/><path d="M7 14v5h10v-5"/></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"/></symbol>
+  <symbol id="i-cal" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M8 3v4M16 3v4"/></symbol>
+  <symbol id="i-cart" viewBox="0 0 24 24"><path d="M3 4h2l2.2 11h10l2-8H6.5"/><circle cx="9" cy="19" r="1.4"/><circle cx="17" cy="19" r="1.4"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></symbol>
+  <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 16V5M7 9l5-5 5 5M5 20h14"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></symbol>
+  <symbol id="i-l" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
+  <symbol id="i-r" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14-4M4 5v3h3M4 13a8 8 0 0 0 14 4M20 19v-3h-3"/></symbol>
+</svg>
+<div class="update-bar" id="updateBar" hidden><span>A new version of LAZLOG is ready.</span><button type="button" onclick="location.reload()">Reload</button></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<div class="modal-overlay" id="askModal">
+  <div class="modal" style="max-width:440px;" role="dialog" aria-modal="true" aria-labelledby="askTitle">
+    <h2 id="askTitle">Ask My Chef</h2>
+    <p>Tell it what you're thinking about eating or cooking, then keep refining — swap ingredients, ask "what if I baked it instead," whatever. It remembers the conversation.</p>
+    <div class="ask-thread" id="askThread"></div>
+    <textarea id="askInput" aria-label="What are you thinking of eating or cooking?" placeholder="e.g. cottage cheese with granola and honey, or frying up some chicken tenders..." style="width:100%; background:var(--card-2); border:1px solid var(--border); border-radius:10px; padding:11px 12px; color:var(--text); font-family:var(--sans); font-size:13px; min-height:56px; resize:vertical; margin-bottom:12px;"></textarea>
+    <div id="askResult"></div>
+    <div class="modal-btns" id="askBtns" style="flex-wrap:wrap;">
+      <button class="btn-quiet" onclick="closeAskModal()">Close</button>
+      <button class="btn-gold" onclick="submitAsk()" id="askSubmitBtn">Ask</button>
+    </div>
+  </div>
+</div>
+
+<header>
+  <div class="brand"><svg viewBox="0 0 34 34" aria-hidden="true"><g fill="none" stroke-width="4.2" stroke-linecap="round" transform="rotate(-90 17 17)"><circle cx="17" cy="17" r="12" stroke="#3ddc84" stroke-dasharray="11 64.4"/><circle cx="17" cy="17" r="12" stroke="#f2c94c" stroke-dasharray="11 64.4" stroke-dashoffset="-18.85"/><circle cx="17" cy="17" r="12" stroke="#f2994a" stroke-dasharray="11 64.4" stroke-dashoffset="-37.7"/><circle cx="17" cy="17" r="12" stroke="#eb5757" stroke-dasharray="11 64.4" stroke-dashoffset="-56.55"/></g><circle cx="17" cy="17" r="3.2" fill="#e8e6e1"/></svg><div><h1>LAZ<span>LOG</span></h1><div class="sub">Diet &amp; habit tracker</div></div></div>
+  <span class="ver" id="verStamp" title="App version"></span>
+</header>
+
+<!-- ============ HOME TAB ============ -->
+<div class="tab-content active" id="tab-home">
+
+  <div class="welcome" id="welcomeCard" hidden>
+    <h2>Welcome to LAZLOG</h2>
+    <p>Tap to log coffee, water, smokes and meals. Add a free Groq key to unlock photo meal analysis, Ask My Chef and daily meal plans. Everything stays on this device.</p>
+    <div class="row"><button type="button" class="btn-gold" onclick="goToSettingsForKey()">Add API key</button><button type="button" class="btn-quiet" onclick="dismissWelcome()">Not now</button></div>
+  </div>
+
+  <div class="day-nav">
+    <button type="button" aria-label="Previous day" onclick="shiftDay(-1)"><svg class="ic-svg" aria-hidden="true"><use href="#i-l"/></svg></button>
+    <div class="day-label" id="dayLabel">Today<span class="today-tag" id="todayTag"></span></div>
+    <button type="button" id="nextDayBtn" aria-label="Next day" onclick="shiftDay(1)"><svg class="ic-svg" aria-hidden="true"><use href="#i-r"/></svg></button>
+  </div>
+
+  <div class="trend-strip" id="trendStrip"></div>
+
+  <div class="verdict">
+    <div class="verdict-top">
+      <span class="day-badge" id="dayBadge"><span class="dot"></span><span id="dayBadgeText">—</span></span>
+    </div>
+    <div class="verdict-label" id="verdictLabel">Today's Verdict</div>
+    <div class="verdict-text" id="verdictText">Log something to get roasted or praised.</div>
+  </div>
+
+  <section>
+    <div class="section-label">Quick Tap</div>
+    <div class="grid4">
+      <button type="button" class="tap-btn coffee" onclick="quickLog('Coffee','Cup of coffee')" aria-label="Log coffee">
+        <svg class="ic-svg" aria-hidden="true"><use href="#i-coffee"/></svg><div class="lbl">Coffee</div><div class="count" id="cnt-Coffee" aria-label="count today">0</div>
+      </button>
+      <button type="button" class="tap-btn water" onclick="quickLog('Water','Bottle of water')" aria-label="Log water">
+        <svg class="ic-svg" aria-hidden="true"><use href="#i-water"/></svg><div class="lbl">Water</div><div class="count" id="cnt-Water" aria-label="count today">0</div>
+      </button>
+      <button type="button" class="tap-btn smoke" onclick="quickLog('Smoked','Smoked')" aria-label="Log smoked">
+        <svg class="ic-svg" aria-hidden="true"><use href="#i-smoke"/></svg><div class="lbl">Smoked</div><div class="count" id="cnt-Smoked" aria-label="count today">0</div>
+      </button>
+      <button type="button" class="tap-btn junk" onclick="quickLog('Junk','Ate junk food')" aria-label="Log ate junk">
+        <svg class="ic-svg" aria-hidden="true"><use href="#i-junk"/></svg><div class="lbl">Ate Junk</div><div class="count" id="cnt-Junk" aria-label="count today">0</div>
+      </button>
+    </div>
+    <button type="button" class="tap-btn photo wide" onclick="triggerPhoto()">
+      <svg class="ic-svg" aria-hidden="true"><use href="#i-camera"/></svg><div class="lbl">Snap a Meal — auto-log nutrition</div>
+    </button>
+    <input type="file" id="photoInput" accept="image/*" capture="environment" style="display:none;" onchange="handlePhoto(event)">
+    <div id="analyzingRow"></div>
+    <button type="button" class="tap-btn chef wide" onclick="openAskModal()">
+      <svg class="ic-svg" aria-hidden="true"><use href="#i-chef"/></svg><div class="lbl">Ask My Chef — is this healthy?</div>
+    </button>
+    <div class="legend">
+      <span><span class="dot" style="background:var(--c-green);"></span>good choice</span>
+      <span><span class="dot" style="background:var(--c-yellow);"></span>moderate</span>
+      <span><span class="dot" style="background:var(--c-orange);"></span>caution</span>
+      <span><span class="dot" style="background:var(--c-red);"></span>watch this one</span>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-label">Weight</div>
+    <div class="row-card">
+      <div class="weight-row">
+        <input type="number" inputmode="decimal" aria-label="Weight in pounds" id="weightInput" placeholder="Enter weight (lbs)" step="0.1">
+        <button type="button" onclick="logWeight()">Log</button>
+      </div>
+      <div class="weight-latest" id="weightLatest"></div>
+      <div id="weightSparkline"></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-label">How I Feel</div>
+    <div class="row-card">
+      <div class="grid3" id="feelGrid" role="group" aria-label="How I feel">
+        <button type="button" class="feel-btn" data-feel="Good" onclick="setFeel('Good')">Good</button>
+        <button type="button" class="feel-btn" data-feel="Okay" onclick="setFeel('Okay')">Okay</button>
+        <button type="button" class="feel-btn" data-feel="Rough" onclick="setFeel('Rough')">Rough</button>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-label" id="timelineLabel">Today's Timeline</div>
+    <div class="timeline" id="timeline"></div>
+  </section>
+
+</div>
+
+<!-- ============ PLAN TAB ============ -->
+<div class="tab-content" id="tab-plan">
+  <section>
+    <div class="section-label">Meal Plan</div>
+    <div class="section-caption">Generates a full day of realistic meal ideas plus a shopping list you can send straight to Grocery. Not happy with one meal? Regenerate just that one and keep the rest.</div>
+    <div class="row-card" style="margin-bottom:14px;">
+      <div style="font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--text-dim); font-weight:600; margin-bottom:8px;">What do you have on hand?</div>
+      <textarea id="pantryInput" aria-label="Ingredients on hand" placeholder="e.g. eggs, chicken breast, spinach, rice..." onchange="savePantry()" style="width:100%; background:var(--card-2); border:1px solid var(--border); border-radius:10px; padding:10px 12px; color:var(--text); font-family:var(--sans); font-size:13px; min-height:48px; resize:vertical; margin-bottom:12px;"></textarea>
+      <button class="btn-gold" style="width:100%; padding:11px; border-radius:10px; font-weight:700; font-size:13px;" onclick="generatePlan()" id="planGenBtn">Generate a Day's Plan</button>
+    </div>
+    <div id="planContent"></div>
+  </section>
+</div>
+
+<!-- ============ GROCERY TAB ============ -->
+<div class="tab-content" id="tab-grocery">
+  <section>
+    <div class="section-label">Quick Scan</div>
+    <div class="section-caption">Snap a shelf item while you're shopping — quick color rating, saved to your last 20 scans.</div>
+    <button type="button" class="tap-btn photo wide" onclick="triggerScan()">
+      <svg class="ic-svg" aria-hidden="true"><use href="#i-camera"/></svg><div class="lbl">Scan an Item</div>
+    </button>
+    <input type="file" id="scanInput" accept="image/*" capture="environment" style="display:none;" onchange="handleScan(event)">
+    <div id="scanAnalyzingRow"></div>
+    <div id="scanList" style="margin-top:12px;"></div>
+  </section>
+
+  <section>
+    <div class="section-label">Shopping List</div>
+    <div class="add-row">
+      <input type="text" aria-label="Add a shopping list item" id="groceryInput" placeholder="Add an item..." onkeydown="if(event.key==='Enter')addGroceryItem();">
+      <button onclick="addGroceryItem()">Add</button>
+    </div>
+    <div id="groceryList"></div>
+    <button class="btn-quiet" style="margin-top:8px; padding:8px 14px; border-radius:9px; font-size:11px; font-weight:600; cursor:pointer;" onclick="clearCheckedGrocery()">Clear Checked Items</button>
+  </section>
+</div>
+
+<!-- ============ SETTINGS TAB ============ -->
+<div class="tab-content" id="tab-settings">
+  <section>
+    <div class="section-label">Groq API Key</div>
+    <div class="section-caption">Used only in your browser for photo analysis and Ask My Chef. Stored on this device only. Get a free key at console.groq.com/keys.</div>
+    <div class="row-card">
+      <input type="password" id="apiKeyInput" autocomplete="off" aria-label="Groq API key" placeholder="gsk_..." style="width:100%; background:var(--card-2); border:1px solid var(--border); border-radius:10px; padding:11px 12px; color:var(--text); font-family:var(--mono); font-size:13px; margin-bottom:10px;">
+      <button class="btn-gold" style="width:100%; padding:10px; border-radius:9px; font-weight:700; font-size:13px; cursor:pointer;" onclick="saveApiKey()">Save Key</button>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-label">AI Models</div>
+    <div class="section-caption">Pick which Groq models LAZLOG uses. The list refreshes when you save a key, or tap Refresh. Your current choice is never changed automatically.</div>
+    <div class="row-card">
+      <label class="fl" for="modelText">Chef &amp; meal-plan model</label>
+      <select class="field" id="modelText" onchange="saveModelChoice('text', this.value)"></select>
+      <label class="fl" for="modelVision">Photo model (must support images)</label>
+      <select class="field" id="modelVision" onchange="saveModelChoice('vision', this.value)"></select>
+      <button type="button" class="btn-teal" style="width:100%; padding:10px; border-radius:9px; font-weight:600; font-size:13px; cursor:pointer;" onclick="refreshModels(true)" id="refreshModelsBtn"><span class="btn-row"><svg class="ic-svg" aria-hidden="true"><use href="#i-refresh"/></svg>Refresh model list</span></button>
+      <div class="status-line" id="modelStatus" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-label">Backup</div>
+    <div class="section-caption">Back up before you clear your browser data. Restore adds anything missing and skips what you already have, so it is safe to run more than once.</div>
+    <div class="row-card" style="display:flex; flex-direction:column; gap:8px;">
+      <button class="btn-gold" style="padding:10px; border-radius:9px; font-weight:600; font-size:13px; cursor:pointer;" onclick="exportData()"><span class="btn-row"><svg class="ic-svg" aria-hidden="true"><use href="#i-down"/></svg>Back Up</span></button>
+      <button class="btn-teal" style="padding:10px; border-radius:9px; font-weight:600; font-size:13px; cursor:pointer;" onclick="document.getElementById('importInput').click()"><span class="btn-row"><svg class="ic-svg" aria-hidden="true"><use href="#i-up"/></svg>Restore</span></button>
+      <button class="btn-quiet" style="padding:10px; border-radius:9px; font-weight:600; font-size:13px; cursor:pointer;" onclick="copyExport()"><span class="btn-row"><svg class="ic-svg" aria-hidden="true"><use href="#i-copy"/></svg>Copy Log as Text</span></button>
+    </div>
+    <input type="file" id="importInput" accept="application/json" style="display:none;" onchange="handleImport(event)">
+  </section>
+
+  <section>
+    <div class="section-label" style="color:var(--red);">Danger Zone</div>
+    <div id="settingsClearArea">
+      <button class="btn-danger" style="width:100%; padding:10px; border-radius:9px; font-weight:600; font-size:13px; cursor:pointer;" onclick="showConfirmClear()">Reset All App Data</button>
+    </div>
+  </section>
+  <section>
+    <div class="section-label">About</div>
+    <div class="row-card about">
+      <strong id="aboutVer"></strong> by LAZLAB Creations<br>
+      Your logs, photos' results and settings live only in this browser. Photos and notes are sent to Groq only when you use an AI feature, using your own key.<br>
+      <a href="../">Project page</a> · <a href="mailto:lazlab.io@gmail.com">lazlab.io@gmail.com</a>
+    </div>
+  </section>
+</div>
+
+<footer id="quickNoteFooter">
+  <form onsubmit="handleNote(event)" aria-label="Quick note">
+    <input type="text" aria-label="Quick note" id="noteInput" placeholder="Quick note (food, symptom, mood)...">
+    <button type="submit">Log</button>
+  </form>
+</footer>
+
+<nav class="bottom-nav" aria-label="Main">
+  <button class="nav-btn active" id="nav-home" onclick="switchTab('home')"><span class="nav-ic"><svg class="ic-svg" aria-hidden="true"><use href="#i-home"/></svg></span><span class="nav-lbl">Home</span></button>
+  <button class="nav-btn" id="nav-plan" onclick="switchTab('plan')"><span class="nav-ic"><svg class="ic-svg" aria-hidden="true"><use href="#i-cal"/></svg></span><span class="nav-lbl">Plan</span></button>
+  <button class="nav-btn" id="nav-grocery" onclick="switchTab('grocery')"><span class="nav-ic"><svg class="ic-svg" aria-hidden="true"><use href="#i-cart"/></svg></span><span class="nav-lbl">Grocery</span></button>
+  <button class="nav-btn" id="nav-settings" onclick="switchTab('settings')"><span class="nav-ic"><svg class="ic-svg" aria-hidden="true"><use href="#i-gear"/></svg></span><span class="nav-lbl">Settings</span></button>
+</nav>
+
+<script>
+/* ============ STATE ============ */
+let logs = JSON.parse(localStorage.getItem('lazlog_data') || '[]');
+let groceryItems = JSON.parse(localStorage.getItem('lazlog_grocery') || '[]');
+let quickScans = JSON.parse(localStorage.getItem('lazlog_scans') || '[]');
+let mealPlan = JSON.parse(localStorage.getItem('lazlog_mealplan') || 'null');
+let selectedDate = toISODate(new Date());
+let currentTab = 'home';
+const APP_VERSION = '1.0.0';
+const DEFAULT_MODEL = 'qwen/qwen3.6-27b';
+function esc(v){ return String(v == null ? '' : v).replace(/[&<>"']/g, function(c){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]; }); }
+
+function toISODate(d){
+  const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
+  return y + '-' + m + '-' + day;
+}
+function todayISO(){ return toISODate(new Date()); }
+
+function save(){ localStorage.setItem('lazlog_data', JSON.stringify(logs)); }
+function saveGrocery(){ localStorage.setItem('lazlog_grocery', JSON.stringify(groceryItems)); }
+function saveScans(){ localStorage.setItem('lazlog_scans', JSON.stringify(quickScans)); }
+function savePlan(){ localStorage.setItem('lazlog_mealplan', JSON.stringify(mealPlan)); }
+
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 1400);
+}
+
+/* ============ TAB NAV ============ */
+function switchTab(tab){
+  currentTab = tab;
+  ['home','plan','grocery','settings'].forEach(function(t){
+    document.getElementById('tab-'+t).classList.toggle('active', t === tab);
+    document.getElementById('nav-'+t).classList.toggle('active', t === tab);
+    if(t === tab) document.getElementById('nav-'+t).setAttribute('aria-current', 'page'); else document.getElementById('nav-'+t).removeAttribute('aria-current');
+  });
+  document.getElementById('quickNoteFooter').style.display = (tab === 'home') ? 'flex' : 'none';
+  if(tab === 'grocery'){ renderGrocery(); renderScans(); }
+  if(tab === 'plan'){ renderPlan(); }
+  if(tab === 'settings'){ document.getElementById('apiKeyInput').value = localStorage.getItem('lazlog_groq_key') || ''; populateModels(); }
+}
+
+function goToSettingsForKey(){
+  switchTab('settings');
+  toast('Add your Groq API key below');
+  setTimeout(function(){ document.getElementById('apiKeyInput').focus(); }, 150);
+}
+
+/* ============ HOME: LOGGING ============ */
+function addLog(type, value, meta){
+  const now = new Date();
+  const entry = { id: Date.now(), date: todayISO(), timestamp: now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), type: type, value: value };
+  if(meta) entry.meta = meta;
+  logs.unshift(entry);
+  save();
+  render();
+}
+
+function quickLog(type, value){ addLog(type, value); toast(value); }
+
+function handleNote(e){
+  e.preventDefault();
+  const input = document.getElementById('noteInput');
+  if(!input.value.trim()) return;
+  addLog('Note', input.value.trim());
+  input.value = '';
+}
+
+function logWeight(){
+  const input = document.getElementById('weightInput');
+  const val = parseFloat(input.value);
+  if(!val || val <= 0) return;
+  addLog('Weight', val + ' lbs');
+  input.value = '';
+  toast('Weight logged');
+}
+
+function setFeel(feel){ addLog('Feeling', feel); toast('Feeling: ' + feel); }
+
+function deleteLog(id){
+  logs = logs.filter(function(l){ return l.id !== id; });
+  save();
+  render();
+  toast('Log deleted');
+}
+
+/* ============ DAY NAV ============ */
+function shiftDay(delta){
+  const parts = selectedDate.split('-').map(Number);
+  const dt = new Date(parts[0], parts[1]-1, parts[2]);
+  dt.setDate(dt.getDate() + delta);
+  const iso = toISODate(dt);
+  if(iso > todayISO()) return;
+  selectedDate = iso;
+  render();
+}
+function jumpToDay(iso){
+  if(iso > todayISO()) return;
+  selectedDate = iso;
+  render();
+}
+function getSelectedLogs(){ return logs.filter(function(l){ return l.date === selectedDate; }); }
+function updateDayLabel(){
+  const parts = selectedDate.split('-').map(Number);
+  const dt = new Date(parts[0], parts[1]-1, parts[2]);
+  const label = dt.toLocaleDateString([], {weekday:'short', month:'short', day:'numeric'});
+  const isToday = selectedDate === todayISO();
+  document.getElementById('dayLabel').innerHTML = label + (isToday ? '<span class="today-tag">TODAY</span>' : '');
+  document.getElementById('nextDayBtn').disabled = isToday;
+  document.getElementById('verdictLabel').textContent = isToday ? "Today's Verdict" : label + ' — Verdict';
+  document.getElementById('timelineLabel').textContent = isToday ? "Today's Timeline" : label + ' — Timeline';
+}
+
+/* ============ COLOR SCORING ============ */
+function getLogColor(log){
+  if((log.type === 'Meal Photo' || log.type === 'Meal') && log.meta && log.meta.rating) return log.meta.rating;
+  const map = { Water:'green', Coffee:'yellow', Smoked:'red', Junk:'red' };
+  return map[log.type] || null;
+}
+function colorHex(color){
+  return { green:'var(--c-green)', yellow:'var(--c-yellow)', orange:'var(--c-orange)', red:'var(--c-red)' }[color] || 'var(--c-neutral)';
+}
+function colorPoints(color){ return { green:2, yellow:0, orange:-1, red:-2 }[color] || 0; }
+
+function digestionBadge(digestion){
+  if(!digestion || !digestion.rating) return '';
+  const map = { easy: { color:'green', emoji:'', label:'EASY DIGESTION' }, moderate: { color:'yellow', emoji:'', label:'MODERATE DIGESTION' }, hard: { color:'red', emoji:'', label:'HARD TO DIGEST' } };
+  const d = map[digestion.rating] || map.moderate;
+  const hex = colorHex(d.color);
+  return '<span class="ask-badge" style="background:color-mix(in srgb, ' + hex + ' 18%, transparent); color:' + hex + '; margin-left:6px;">' + d.label + '</span>' +
+    (digestion.note ? '<div style="font-size:11.5px; color:var(--text-dim); margin:-4px 0 10px;">' + digestion.note + '</div>' : '');
+}
+
+function computeDayBadge(dayLogs){
+  let score = 0, counted = 0;
+  dayLogs.forEach(function(l){ const c = getLogColor(l); if(c){ score += colorPoints(c); counted++; } });
+  if(counted === 0) return { emoji:'⚪', label:'NO DATA YET', color:'var(--c-neutral)' };
+  if(score >= 5) return { emoji:'🟢', label:'WIN', color:'var(--c-green)' };
+  if(score >= 1) return { emoji:'🟡', label:'MIXED', color:'var(--c-yellow)' };
+  if(score >= -4) return { emoji:'🟠', label:'SLIPPING', color:'var(--c-orange)' };
+  return { emoji:'🔴', label:'SCREWUP', color:'var(--c-red)' };
+}
+
+function renderTrendStrip(){
+  const el = document.getElementById('trendStrip');
+  const today = todayISO();
+  let html = '';
+  for(let i = 6; i >= 0; i--){
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const iso = toISODate(d);
+    const dayLogs = logs.filter(function(l){ return l.date === iso; });
+    const badge = computeDayBadge(dayLogs);
+    const isSelected = iso === selectedDate;
+    const dayLabel = d.toLocaleDateString([], { weekday: 'narrow' });
+    html += '<button type="button" class="trend-dot-wrap" aria-label="' + iso + ': ' + badge.label + '" onclick="jumpToDay(\'' + iso + '\')">' +
+      '<div class="trend-dot" style="background:' + badge.color + '; opacity:' + (isSelected ? '1' : '0.55') + '; box-shadow:' + (isSelected ? '0 0 0 2px var(--accent)' : 'none') + ';" title="' + iso + ': ' + badge.label + '"></div>' +
+      '<div class="trend-daylabel">' + (iso === today ? '•' : dayLabel) + '</div></button>';
+  }
+  el.innerHTML = html;
+}
+
+function renderWeightSparkline(){
+  const container = document.getElementById('weightSparkline');
+  if(!container) return;
+  const weightLogs = logs.filter(function(l){ return l.type === 'Weight'; }).slice(0, 15).reverse();
+  if(weightLogs.length < 2){ container.innerHTML = ''; return; }
+  const values = weightLogs.map(function(l){ return parseFloat(l.value); }).filter(function(v){ return !isNaN(v); });
+  if(values.length < 2){ container.innerHTML = ''; return; }
+  const min = Math.min.apply(null, values), max = Math.max.apply(null, values);
+  const range = (max - min) || 1;
+  const w = 260, h = 36, pad = 4;
+  const points = values.map(function(v, i){
+    const x = pad + (i / (values.length - 1)) * (w - 2 * pad);
+    const y = h - pad - ((v - min) / range) * (h - 2 * pad);
+    return x + ',' + y;
+  }).join(' ');
+  container.innerHTML =
+    '<svg width="100%" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none" style="display:block; margin-top:8px;">' +
+    '<polyline points="' + points + '" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>' +
+    '</svg>' +
+    '<div style="font-size:11px; color:var(--text-dim); margin-top:4px;">Last ' + values.length + ' entries · low ' + min + ' · high ' + max + '</div>';
+}
+
+function computeVerdict(dayLogs){
+  function count(t){ return dayLogs.filter(function(l){ return l.type === t; }).length; }
+  const smoke = count('Smoked'), junk = count('Junk'), water = count('Water');
+  if(dayLogs.length === 0){
+    return selectedDate === todayISO() ? "Empty board. Log something — coffee, water, whatever's true right now." : "Nothing logged this day.";
+  }
+  const score = water*1 - smoke*2 - junk*1;
+  if(score >= 5) return 'Clean day. ' + water + ' waters, zero excuses. Keep this exact energy.';
+  if(score >= 2) return 'Solid day. A little junk (' + junk + ') but mostly on track — ' + water + ' waters logged.';
+  if(score >= -2) return 'Middle of the road. ' + smoke + ' smokes, ' + junk + ' junk hits — nothing catastrophic, but you know you can do better than "fine."';
+  if(score >= -6) return 'Rough one. ' + smoke + ' smokes and ' + junk + ' junk meals is a lot for one day. Next day is a clean reset — take it.';
+  return 'That was a wreck of a day — ' + smoke + ' smokes, ' + junk + ' junk meals, not going to pretend otherwise. Doesn\'t erase a good day before or after it. Get up and log a better one.';
+}
+
+/* ============ HOME RENDER ============ */
+function render(){
+  updateDayLabel();
+  renderTrendStrip();
+  const dayLogs = getSelectedLogs();
+
+  const badge = computeDayBadge(dayLogs);
+  const badgeEl = document.getElementById('dayBadge');
+  badgeEl.style.background = 'color-mix(in srgb, ' + badge.color + ' 18%, transparent)';
+  badgeEl.style.color = badge.color;
+  badgeEl.querySelector('.dot').style.background = badge.color;
+  document.getElementById('dayBadgeText').textContent = badge.label;
+  document.querySelector('.verdict').style.setProperty('--v', badge.color);
+
+  ['Coffee','Water','Smoked','Junk'].forEach(function(type){
+    const el = document.getElementById('cnt-'+type);
+    if(el) el.textContent = dayLogs.filter(function(l){ return l.type===type; }).length;
+  });
+
+  document.getElementById('verdictText').textContent = computeVerdict(dayLogs);
+  const wc = document.getElementById('welcomeCard');
+  if(wc) wc.hidden = !!(localStorage.getItem('lazlog_groq_key') || localStorage.getItem('lazlog_welcome_off') || logs.length);
+
+  const weightLogs = logs.filter(function(l){ return l.type==='Weight'; });
+  document.getElementById('weightLatest').innerHTML = weightLogs.length
+    ? 'Latest: <span>' + weightLogs[0].value + '</span> — logged ' + weightLogs[0].date
+    : 'No weight logged yet.';
+  renderWeightSparkline();
+
+  const feelLogs = dayLogs.filter(function(l){ return l.type==='Feeling'; });
+  document.querySelectorAll('.feel-btn').forEach(function(btn){
+    btn.classList.toggle('active', feelLogs.length > 0 && feelLogs[0].value === btn.dataset.feel);
+  });
+
+  const tl = document.getElementById('timeline');
+  tl.innerHTML = dayLogs.length === 0
+    ? '<div class="empty-note">No logs captured this day.</div>'
+    : dayLogs.map(function(l){
+        const c = getLogColor(l);
+        const dot = c ? '<span class="log-dot" style="background:' + colorHex(c) + '"></span>' : '<span class="log-dot" style="background:transparent"></span>';
+        return '<div class="log-item"><div class="log-body">' + dot + '<span class="log-time">' + l.timestamp + '</span><span><span class="log-tag">[' + esc(l.type) + ']</span>' + esc(l.value) + '</span></div><button class="log-del" onclick="deleteLog(' + l.id + ')" title="Delete" aria-label="Delete log entry">✕</button></div>';
+      }).join('');
+}
+
+/* ============ BACKUP ============ */
+function exportData(){
+  const payload = { exportedAt: new Date().toISOString(), logs: logs, groceryItems: groceryItems, quickScans: quickScans, mealPlan: mealPlan, pantry: localStorage.getItem('lazlog_pantry') || '' };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'lazlog-backup-' + todayISO() + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast('Backup saved');
+}
+
+function handleImport(event){
+  const file = event.target.files[0];
+  event.target.value = '';
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      const parsed = JSON.parse(e.target.result);
+      const incomingLogs = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.logs) ? parsed.logs : null);
+      if(!incomingLogs) throw new Error('File does not look like a LazLog backup');
+      const existingIds = {};
+      logs.forEach(function(l){ existingIds[l.id] = true; });
+      let added = 0;
+      incomingLogs.forEach(function(l){
+        if(l && l.id && !existingIds[l.id]){ logs.push(l); existingIds[l.id] = true; added++; }
+      });
+      logs.sort(function(a,b){ return b.id - a.id; });
+      save();
+
+      if(Array.isArray(parsed.groceryItems)){
+        const existingGIds = {};
+        groceryItems.forEach(function(g){ existingGIds[g.id] = true; });
+        parsed.groceryItems.forEach(function(g){ if(g && g.id && !existingGIds[g.id]){ groceryItems.push(g); existingGIds[g.id] = true; } });
+        saveGrocery();
+      }
+      if(Array.isArray(parsed.quickScans)){
+        const existingSIds = {};
+        quickScans.forEach(function(s){ existingSIds[s.id] = true; });
+        parsed.quickScans.forEach(function(s){ if(s && s.id && !existingSIds[s.id]){ quickScans.push(s); existingSIds[s.id] = true; } });
+        quickScans.sort(function(a,b){ return b.id - a.id; });
+        quickScans = quickScans.slice(0, 20);
+        saveScans();
+      }
+
+      if(typeof parsed.pantry === 'string' && parsed.pantry && !localStorage.getItem('lazlog_pantry')){
+        localStorage.setItem('lazlog_pantry', parsed.pantry);
+        document.getElementById('pantryInput').value = parsed.pantry;
+      }
+
+      render();
+      toast('Restored ' + added + ' log' + (added === 1 ? '' : 's'));
+    } catch(err){
+      console.error('LAZLOG import error:', err);
+      toast('Restore failed — not a valid backup file');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function copyExport(){
+  const md = logs.map(function(l){ return '[' + l.date + ' ' + l.timestamp + '] (' + l.type + ') ' + l.value; }).join('\n');
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(md).then(function(){ toast('Copied to clipboard'); }).catch(function(){ toast('Copy failed'); });
+  } else { toast('Clipboard unavailable'); }
+}
+
+function showConfirmClear(){
+  document.getElementById('settingsClearArea').innerHTML =
+    '<div class="confirm-bar"><span>Reset ALL app data — logs, plan, grocery, scans? This can\'t be undone.</span>' +
+    '<div class="btns"><button class="btn-danger" onclick="clearAllData()">Reset</button><button class="btn-quiet" onclick="hideConfirmClear()">Cancel</button></div></div>';
+}
+function hideConfirmClear(){
+  document.getElementById('settingsClearArea').innerHTML =
+    '<button class="btn-danger" style="width:100%; padding:10px; border-radius:9px; font-weight:600; font-size:13px; cursor:pointer;" onclick="showConfirmClear()">Reset All App Data</button>';
+}
+function clearAllData(){
+  logs = []; groceryItems = []; quickScans = []; mealPlan = null;
+  save(); saveGrocery(); saveScans(); savePlan();
+  hideConfirmClear();
+  render(); renderGrocery(); renderScans(); renderPlan();
+  toast('All app data reset');
+}
+
+/* ============ SETTINGS: GROQ MODELS ============ */
+function getModel(kind){ return localStorage.getItem('lazlog_model_' + kind) || DEFAULT_MODEL; }
+function cachedModels(){ try{ return JSON.parse(localStorage.getItem('lazlog_models_cache') || '[]'); }catch(e){ return []; } }
+function saveModelChoice(kind, id){ localStorage.setItem('lazlog_model_' + kind, id); toast('Model saved'); }
+function populateModels(){
+  const list = cachedModels();
+  ['text','vision'].forEach(function(kind){
+    const sel = document.getElementById(kind === 'text' ? 'modelText' : 'modelVision');
+    if(!sel) return;
+    const saved = getModel(kind);
+    const ids = list.slice();
+    [DEFAULT_MODEL, saved].forEach(function(m){ if(ids.indexOf(m) === -1) ids.push(m); });
+    ids.sort();
+    sel.innerHTML = ids.map(function(id){
+      const missing = list.length && list.indexOf(id) === -1;
+      return '<option value="' + esc(id) + '"' + (id === saved ? ' selected' : '') + '>' + esc(id) + (missing ? ' (not in latest list)' : '') + '</option>';
+    }).join('');
+  });
+  const st = document.getElementById('modelStatus');
+  const stamp = localStorage.getItem('lazlog_models_ts');
+  if(st && !st.dataset.busy){
+    const miss = ['text','vision'].filter(function(k){ return list.length && list.indexOf(getModel(k)) === -1; });
+    st.textContent = list.length ? (list.length + ' models available' + (stamp ? ' · updated ' + stamp : '') + (miss.length ? ' · your saved model is not in the latest list; it is kept as is.' : '')) : 'Using the built-in default. Save a key or tap Refresh to load the live list.';
+  }
+}
+async function refreshModels(manual){
+  const key = localStorage.getItem('lazlog_groq_key');
+  const st = document.getElementById('modelStatus');
+  if(!key){ if(manual){ toast('Add your Groq API key first'); } return; }
+  if(st){ st.dataset.busy = '1'; st.textContent = 'Loading models…'; }
+  try{
+    const resp = await fetch('https://api.groq.com/openai/v1/models', { headers: { 'Authorization': 'Bearer ' + key } });
+    if(!resp.ok) throw new Error('HTTP ' + resp.status);
+    const data = await resp.json();
+    const ids = (data.data || []).filter(function(m){
+      return m && m.id && m.active !== false && !/whisper|tts|guard|safeguard|embed|orpheus|playai/i.test(m.id);
+    }).map(function(m){ return m.id; });
+    if(!ids.length) throw new Error('empty list');
+    localStorage.setItem('lazlog_models_cache', JSON.stringify(ids));
+    localStorage.setItem('lazlog_models_ts', new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}));
+    if(manual) toast('Model list updated');
+  }catch(err){
+    if(st){ delete st.dataset.busy; st.textContent = 'Could not refresh models (' + err.message + '). Your saved choices are unchanged.'; }
+    return;
+  }
+  if(st) delete st.dataset.busy;
+  populateModels();
+}
+/* Some models reject reasoning/json params. On a 400, retry once without them. */
+async function groqFetch(url, opts){
+  let resp = await fetch(url, opts);
+  if(resp.status === 400){
+    try{
+      const body = JSON.parse(opts.body);
+      if(body.reasoning_effort || body.reasoning_format || body.response_format){
+        const probe = await resp.clone().text();
+        if(/reasoning|response_format|json/i.test(probe)){
+          delete body.reasoning_effort; delete body.reasoning_format; delete body.response_format;
+          resp = await fetch(url, Object.assign({}, opts, { body: JSON.stringify(body) }));
+        }
+      }
+    }catch(e){}
+  }
+  return resp;
+}
+
+/* ============ SETTINGS: API KEY ============ */
+function saveApiKey(){
+  const key = document.getElementById('apiKeyInput').value.trim();
+  if(key) localStorage.setItem('lazlog_groq_key', key);
+  else localStorage.removeItem('lazlog_groq_key');
+  toast(key ? 'API key saved' : 'API key cleared');
+  if(key) refreshModels(false);
+  render();
+}
+
+/* ============ PHOTO -> NUTRITION ============ */
+function triggerPhoto(){
+  const key = localStorage.getItem('lazlog_groq_key');
+  if(!key){ toast('Add your Groq API key first'); goToSettingsForKey(); return; }
+  document.getElementById('photoInput').click();
+}
+
+function compressImage(file, maxDim){
+  return new Promise(function(resolve, reject){
+    const img = new Image();
+    const reader = new FileReader();
+    reader.onload = function(e){ img.src = e.target.result; };
+    reader.onerror = reject;
+    img.onload = function(){
+      let width = img.width, height = img.height;
+      if(width > height && width > maxDim){ height = Math.round(height * maxDim / width); width = maxDim; }
+      else if(height > maxDim){ width = Math.round(width * maxDim / height); height = maxDim; }
+      const canvas = document.createElement('canvas');
+      canvas.width = width; canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL('image/jpeg', 0.7));
+    };
+    img.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function callGroqVision(dataUrl, prompt, maxTokens){
+  const key = localStorage.getItem('lazlog_groq_key');
+  const resp = await groqFetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+    body: JSON.stringify({
+      model: getModel('vision'),
+      messages: [{ role: 'user', content: [{ type: 'text', text: prompt }, { type: 'image_url', image_url: { url: dataUrl } }] }],
+      temperature: 0.3,
+      max_completion_tokens: maxTokens,
+      reasoning_effort: 'none',
+      reasoning_format: 'hidden',
+      response_format: { type: 'json_object' }
+    })
+  });
+  if(!resp.ok){
+    const errText = await resp.text().catch(function(){ return ''; });
+    throw new Error('API error ' + resp.status + (errText ? ': ' + errText.slice(0,150) : ''));
+  }
+  const data = await resp.json();
+  const raw = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
+  const cleaned = raw.replace(/```json/gi, '').replace(/```/g, '').trim();
+  return JSON.parse(cleaned);
+}
+
+function macroSpan(value, quality){
+  const c = colorHex(quality === 'good' ? 'green' : quality === 'bad' ? 'red' : 'yellow');
+  return '<span style="color:' + c + '; font-weight:600;">' + value + '</span>';
+}
+
+async function handlePhoto(event){
+  const file = event.target.files[0];
+  event.target.value = '';
+  if(!file) return;
+  const key = localStorage.getItem('lazlog_groq_key');
+  if(!key){ toast('Add your Groq API key first'); goToSettingsForKey(); return; }
+
+  const row = document.getElementById('analyzingRow');
+  row.innerHTML = '<div class="analyzing"><div class="spinner"></div>Analyzing photo...</div>';
+
+  try{
+    const dataUrl = await compressImage(file, 800);
+    const prompt = 'You are a nutrition estimator for a personal diet log aimed at someone who does not understand nutrition numbers. Identify the food or drink in this photo. Give an approximate nutrition estimate for the visible portion, rate it as a dietary choice using a traffic-light system ("green"=whole/minimally processed and good, "yellow"=moderate/fine in normal portions, "orange"=processed/heavy caution, "red"=poor choice - fried/sugary/very processed), rate the quality of each macro individually ("good", "neutral", or "bad" — e.g. fiber-rich complex carbs = good, refined sugar = bad; lean protein = good; unsaturated fat = good, heavily fried/trans fat = bad), AND separately assess how easy this food is to digest (fat content, fiber, spice, dairy, fried/greasy prep, portion size, common irritants). Respond ONLY with valid JSON in this exact shape, no other text: {"food":"short name","calories":number,"protein_g":number,"carbs_g":number,"fat_g":number,"confidence":"low"|"medium"|"high","rating":"green"|"yellow"|"orange"|"red","reason":"3-6 word reason for the rating","macro_quality":{"protein":"good"|"neutral"|"bad","carbs":"good"|"neutral"|"bad","fat":"good"|"neutral"|"bad"},"digestion":{"rating":"easy"|"moderate"|"hard","note":"one short plain-language reason"}}';
+
+    const nutrition = await callGroqVision(dataUrl, prompt, 400);
+    if(nutrition.calories === undefined && nutrition.food === undefined){
+      throw new Error('Model response missing expected fields');
+    }
+
+    const cal = Math.round(nutrition.calories || 0);
+    const p = Math.round(nutrition.protein_g || 0);
+    const c = Math.round(nutrition.carbs_g || 0);
+    const f = Math.round(nutrition.fat_g || 0);
+    const foodName = nutrition.food || 'Unidentified food';
+    const rating = ['green','yellow','orange','red'].includes(nutrition.rating) ? nutrition.rating : 'yellow';
+    const reason = nutrition.reason || '';
+    const mq = nutrition.macro_quality || {};
+    const dotEmoji = { green: '🟢', yellow: '🟡', orange: '🟠', red: '🔴' }[rating];
+
+    const macroStr = 'P' + macroSpan(p, mq.protein) + '/C' + macroSpan(c, mq.carbs) + '/F' + macroSpan(f, mq.fat) + 'g';
+    const dig = nutrition.digestion || {};
+    const digTag = dig.rating ? ' | digestion: ' + dig.rating + (dig.note ? ' (' + dig.note + ')' : '') : '';
+    const summary = foodName + ' — ~' + cal + ' kcal (' + macroStr + ')' + (reason ? ' — ' + reason : '') + digTag;
+    addLog('Meal Photo', summary, nutrition);
+    toast(dotEmoji + ' Logged: ' + foodName);
+  } catch(err){
+    console.error('LAZLOG photo analysis error:', err);
+    toast('Analysis failed — check browser console for details');
+    addLog('Meal Photo', 'Photo logged (estimate failed — check console/API key)');
+  } finally {
+    row.innerHTML = '';
+  }
+}
+
+/* ============ ASK MY CHEF ============ */
+let lastAskResult = null;
+let lastAskAlts = [];
+let askMessages = [];
+let askThread = [];
+
+const ASK_SYSTEM_PROMPT = 'You are a friendly, direct personal nutritionist and home chef helping someone refine a meal idea through conversation. They do not understand nutrition jargon, so keep language plain and simple. The conversation may involve them adjusting or refining their idea across multiple messages (swapping ingredients, changing cooking method, asking "what if" questions) — always evaluate the CURRENT full state of what they are describing, using the whole conversation for context. Beyond healthiness, ALWAYS also assess how easy the food is to digest (things like fat content, fiber, spice level, dairy, fried/greasy prep, portion size, common irritants) — this matters to them as much as nutrition does. For every message, respond ONLY with valid JSON in this exact shape, no other text: {"dish":"short name of the current meal idea","rating":"green"|"yellow"|"orange"|"red","verdict":"one direct sentence","details":"2-3 sentence plain-language explanation","digestion":{"rating":"easy"|"moderate"|"hard","note":"one short plain-language reason, e.g. high fat and fried, or light and easy on the gut"},"alternatives":[{"name":"short alt idea","rating":"green"|"yellow"|"orange"|"red","reason":"one short plain-language sentence on why this specific swap is healthier and/or easier to digest"},{"name":"short alt idea","rating":"...","reason":"..."},{"name":"short alt idea","rating":"...","reason":"..."}]}';
+
+function openAskModal(){
+  const key = localStorage.getItem('lazlog_groq_key');
+  if(!key){ toast('Add your Groq API key first'); goToSettingsForKey(); return; }
+  const input = document.getElementById('askInput');
+  input.value = '';
+  input.placeholder = 'e.g. cottage cheese with granola and honey, or frying up some chicken tenders...';
+  document.getElementById('askResult').innerHTML = '';
+  askMessages = [{ role: 'system', content: ASK_SYSTEM_PROMPT }];
+  askThread = [];
+  lastAskResult = null;
+  lastAskAlts = [];
+  renderAskThread();
+  renderAskButtons();
+  document.getElementById('askModal').classList.add('show');
+}
+function closeAskModal(){ document.getElementById('askModal').classList.remove('show'); }
+
+function renderAskThread(){
+  const el = document.getElementById('askThread');
+  el.innerHTML = askThread.map(function(m){
+    if(m.role === 'user') return '<div class="ask-msg-user">' + m.text + '</div>';
+    const dotEmoji = { green: '🟢', yellow: '🟡', orange: '🟠', red: '🔴' }[m.rating] || '⚪';
+    return '<div class="ask-msg-ai"><span>' + dotEmoji + '</span><span>' + m.text + '</span></div>';
+  }).join('');
+  el.scrollTop = el.scrollHeight;
+}
+
+function renderAskButtons(loading){
+  let html = '<button class="btn-quiet" onclick="closeAskModal()">Close</button>';
+  if(lastAskResult && !loading){
+    html += '<button class="btn-teal" onclick="logAskResult()">Log It</button>';
+  }
+  html += '<button class="btn-gold" onclick="submitAsk()" id="askSubmitBtn"' + (loading ? ' disabled' : '') + '>' + (lastAskResult ? 'Refine' : 'Ask') + '</button>';
+  document.getElementById('askBtns').innerHTML = html;
+}
+
+async function submitAsk(){
+  const input = document.getElementById('askInput');
+  const q = input.value.trim();
+  if(!q){
+    toast(lastAskResult ? 'Type your refinement first' : 'Type something first');
+    input.focus();
+    return;
+  }
+  const key = localStorage.getItem('lazlog_groq_key');
+  if(!key){ toast('Add your Groq API key first'); goToSettingsForKey(); return; }
+
+  askMessages.push({ role: 'user', content: q });
+  askThread.push({ role: 'user', text: q });
+  input.value = '';
+  renderAskThread();
+
+  const resultEl = document.getElementById('askResult');
+  resultEl.innerHTML = '<div class="analyzing"><div class="spinner"></div>Thinking it through...</div>';
+  renderAskButtons(true);
+
+  try{
+    const resp = await groqFetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+      body: JSON.stringify({
+        model: getModel('text'),
+        messages: askMessages,
+        temperature: 0.5,
+        max_completion_tokens: 500,
+        reasoning_effort: 'none',
+        reasoning_format: 'hidden',
+        response_format: { type: 'json_object' }
+      })
+    });
+    if(!resp.ok){
+      const errText = await resp.text().catch(function(){ return ''; });
+      throw new Error('API error ' + resp.status + (errText ? ': ' + errText.slice(0,150) : ''));
+    }
+    const data = await resp.json();
+    const raw = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
+    const cleaned = raw.replace(/```json/gi, '').replace(/```/g, '').trim();
+    const result = JSON.parse(cleaned);
+    if(!result.verdict && !result.dish){ throw new Error('Model response missing expected fields: ' + cleaned.slice(0,150)); }
+
+    askMessages.push({ role: 'assistant', content: cleaned });
+
+    const rating = ['green','yellow','orange','red'].includes(result.rating) ? result.rating : 'yellow';
+    const dotEmoji = { green: '🟢', yellow: '🟡', orange: '🟠', red: '🔴' }[rating];
+    const alts = Array.isArray(result.alternatives) ? result.alternatives : [];
+
+    lastAskResult = { dish: result.dish || q, rating: rating, verdict: result.verdict || '', digestion: result.digestion || null };
+    lastAskAlts = alts;
+    askThread.push({ role: 'assistant', rating: rating, text: (result.verdict || '') });
+    renderAskThread();
+
+    resultEl.innerHTML =
+      '<span class="ask-badge" style="background:color-mix(in srgb, ' + colorHex(rating) + ' 18%, transparent); color:' + colorHex(rating) + ';">' + dotEmoji + ' ' + rating.toUpperCase() + '</span>' +
+      digestionBadge(result.digestion) +
+      '<div class="ask-dish">' + (result.dish || q) + '</div>' +
+      '<div class="ask-verdict">' + (result.verdict || '') + '</div>' +
+      '<div class="ask-details">' + (result.details || '') + '</div>' +
+      (alts.length ? '<div class="ask-alts-label">Healthier Alternatives (tap for why)</div><ul class="ask-alts">' + alts.map(function(a, i){
+        const isObj = a && typeof a === 'object';
+        const name = isObj ? (a.name || 'Alternative') : a;
+        const reason = isObj ? (a.reason || '') : '';
+        return '<li class="ask-alt-item" tabindex="0" role="button" aria-expanded="false" onclick="this.classList.toggle(\'open\'); this.setAttribute(\'aria-expanded\', this.classList.contains(\'open\'))" onkeydown="if((event.key===\'Enter\'||event.key===\' \') && event.target===this){event.preventDefault(); this.click();}">' +
+          '<div class="ask-alt-head"><span>' + name + '</span>' + (reason ? '<span class="ask-alt-chev">▾</span>' : '') + '</div>' +
+          (reason ? '<div class="ask-alt-reason">' + reason +
+            '<div class="ask-alt-actions"><button onclick="event.stopPropagation(); logAltByIndex(' + i + ')">Log This</button><button onclick="event.stopPropagation(); discussAltByIndex(' + i + ')">Discuss This</button></div>' +
+            '</div>' : '') + '</li>';
+      }).join('') + '</ul>' : '');
+
+    input.placeholder = 'Refine it — e.g. "what if I bake it instead" or "swap the honey for..."';
+    renderAskButtons(false);
+  } catch(err){
+    console.error('LAZLOG Ask My Chef error:', err);
+    resultEl.innerHTML = '<div class="empty-note">Couldn\'t get an answer — check the browser console for details, or try rephrasing.</div>';
+    renderAskButtons(false);
+  }
+}
+
+function logAskResult(){
+  if(!lastAskResult) return;
+  const dotEmoji = { green: '🟢', yellow: '🟡', orange: '🟠', red: '🔴' }[lastAskResult.rating];
+  const digTag = (lastAskResult.digestion && lastAskResult.digestion.rating) ? ' | digestion: ' + lastAskResult.digestion.rating : '';
+  addLog('Meal', lastAskResult.dish + ' — ' + lastAskResult.verdict + digTag, { rating: lastAskResult.rating, digestion: lastAskResult.digestion });
+  toast('Logged: ' + lastAskResult.dish);
+  closeAskModal();
+}
+
+function logAltByIndex(i){
+  const a = lastAskAlts[i];
+  if(!a) return;
+  const isObj = a && typeof a === 'object';
+  const name = isObj ? (a.name || 'Alternative') : a;
+  const reason = isObj ? (a.reason || '') : '';
+  const rating = (isObj && ['green','yellow','orange','red'].includes(a.rating)) ? a.rating : 'green';
+  const dotEmoji = { green: '🟢', yellow: '🟡', orange: '🟠', red: '🔴' }[rating];
+  addLog('Meal', name + (reason ? ' — ' + reason : ''), { rating: rating });
+  toast('Logged: ' + name);
+}
+
+function discussAltByIndex(i){
+  const a = lastAskAlts[i];
+  if(!a) return;
+  const name = (a && typeof a === 'object') ? (a.name || 'that alternative') : a;
+  document.getElementById('askInput').value = 'Let\'s go with ' + name + ' instead — re-evaluate that.';
+  submitAsk();
+}
+
+/* ============ MEAL PLAN ============ */
+let planLoadingIndex = -1;
+
+function savePantry(){
+  localStorage.setItem('lazlog_pantry', document.getElementById('pantryInput').value.trim());
+}
+function loadPantry(){
+  document.getElementById('pantryInput').value = localStorage.getItem('lazlog_pantry') || '';
+}
+
+async function generatePlan(){
+  const key = localStorage.getItem('lazlog_groq_key');
+  if(!key){ toast('Add your Groq API key first'); goToSettingsForKey(); return; }
+  savePantry();
+  const pantry = document.getElementById('pantryInput').value.trim();
+  const btn = document.getElementById('planGenBtn');
+  btn.disabled = true;
+  document.getElementById('planContent').innerHTML = '<div class="analyzing"><div class="spinner"></div>Building your day...</div>';
+
+  try{
+    const pantryLine = pantry ? ' The user has these ingredients on hand and would like the plan to make good use of them where reasonable, though a few extra items are fine: ' + pantry + '.' : '';
+    const prompt = 'You are a home chef and nutritionist planning meals for someone who wants simple, realistic, healthy food they will actually cook — not fancy recipes. Plan ONE day: Breakfast, Lunch, Dinner, and one Snack. For each give a short realistic idea (what to make/eat, not a full recipe) and rate it green/yellow/orange/red.' + pantryLine + ' Then compile a consolidated shopping list of every ingredient needed across all meals that the user does NOT already have on hand, deduplicated, each tagged with a rough category (Produce, Protein, Dairy, Pantry, Frozen, Other). Respond ONLY with valid JSON in this exact shape, no other text: {"meals":[{"slot":"Breakfast","idea":"...","rating":"green"},{"slot":"Lunch","idea":"...","rating":"..."},{"slot":"Dinner","idea":"...","rating":"..."},{"slot":"Snack","idea":"...","rating":"..."}],"shopping_list":[{"item":"...","category":"Produce"}]}';
+
+    const result = await callGroqText(prompt, 900);
+    if(!Array.isArray(result.meals)){ throw new Error('Model response missing meals array'); }
+
+    mealPlan = { generatedAt: new Date().toISOString(), meals: result.meals, shopping_list: Array.isArray(result.shopping_list) ? result.shopping_list : [], shoppingStale: false };
+    savePlan();
+    renderPlan();
+    toast('Plan generated');
+  } catch(err){
+    console.error('LAZLOG plan error:', err);
+    document.getElementById('planContent').innerHTML = '<div class="empty-note">Couldn\'t generate a plan — check the browser console, or try again.</div>';
+    toast('Plan generation failed');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function callGroqText(prompt, maxTokens){
+  const key = localStorage.getItem('lazlog_groq_key');
+  const resp = await groqFetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+    body: JSON.stringify({
+      model: getModel('text'),
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.6,
+      max_completion_tokens: maxTokens,
+      reasoning_effort: 'none',
+      reasoning_format: 'hidden',
+      response_format: { type: 'json_object' }
+    })
+  });
+  if(!resp.ok){
+    const errText = await resp.text().catch(function(){ return ''; });
+    throw new Error('API error ' + resp.status + (errText ? ': ' + errText.slice(0,150) : ''));
+  }
+  const data = await resp.json();
+  const raw = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
+  const cleaned = raw.replace(/```json/gi, '').replace(/```/g, '').trim();
+  return JSON.parse(cleaned);
+}
+
+async function regenerateMeal(index){
+  if(!mealPlan || !mealPlan.meals[index]) return;
+  const key = localStorage.getItem('lazlog_groq_key');
+  if(!key){ toast('Add your Groq API key first'); goToSettingsForKey(); return; }
+
+  const slot = mealPlan.meals[index].slot;
+  const pantry = document.getElementById('pantryInput').value.trim();
+  const others = mealPlan.meals.filter(function(m, i){ return i !== index; }).map(function(m){ return m.slot + ': ' + m.idea; }).join('; ');
+
+  planLoadingIndex = index;
+  renderPlan();
+
+  try{
+    const pantryLine = pantry ? ' They have these ingredients on hand and would like it to make use of them where reasonable: ' + pantry + '.' : '';
+    const prompt = 'You are a home chef planning one meal for someone who wants simple, realistic, healthy food they will actually cook. Suggest a new idea for their ' + slot + ' today. Their other meals today are already set as: ' + others + ' — keep this one different from those, don\'t repeat the same main ingredient unnecessarily.' + pantryLine + ' Respond ONLY with valid JSON, no other text: {"idea":"short realistic idea for the ' + slot + '","rating":"green"|"yellow"|"orange"|"red"}';
+
+    const result = await callGroqText(prompt, 250);
+    if(!result.idea){ throw new Error('Model response missing idea'); }
+
+    mealPlan.meals[index] = { slot: slot, idea: result.idea, rating: ['green','yellow','orange','red'].includes(result.rating) ? result.rating : 'yellow' };
+    mealPlan.shoppingStale = true;
+    savePlan();
+    toast(slot + ' updated');
+  } catch(err){
+    console.error('LAZLOG regenerate meal error:', err);
+    toast('Regeneration failed — check console');
+  } finally {
+    planLoadingIndex = -1;
+    renderPlan();
+  }
+}
+
+async function refreshShoppingList(){
+  if(!mealPlan || !mealPlan.meals) return;
+  const key = localStorage.getItem('lazlog_groq_key');
+  if(!key){ toast('Add your Groq API key first'); goToSettingsForKey(); return; }
+  const pantry = document.getElementById('pantryInput').value.trim();
+
+  const btn = document.getElementById('refreshShopBtn');
+  if(btn) btn.disabled = true;
+
+  try{
+    const mealsList = mealPlan.meals.map(function(m){ return m.slot + ': ' + m.idea; }).join('; ');
+    const pantryLine = pantry ? ' The user already has these on hand, do not include them: ' + pantry + '.' : '';
+    const prompt = 'Given this day of meals: ' + mealsList + ' — compile a consolidated shopping list of every ingredient needed, deduplicated, each tagged with a rough category (Produce, Protein, Dairy, Pantry, Frozen, Other).' + pantryLine + ' Respond ONLY with valid JSON, no other text: {"shopping_list":[{"item":"...","category":"Produce"}]}';
+
+    const result = await callGroqText(prompt, 500);
+    mealPlan.shopping_list = Array.isArray(result.shopping_list) ? result.shopping_list : [];
+    mealPlan.shoppingStale = false;
+    savePlan();
+    renderPlan();
+    toast('Shopping list refreshed');
+  } catch(err){
+    console.error('LAZLOG refresh shopping list error:', err);
+    toast('Refresh failed — check console');
+  } finally {
+    if(btn) btn.disabled = false;
+  }
+}
+
+function renderPlan(){
+  loadPantry();
+  const el = document.getElementById('planContent');
+  if(!mealPlan || !mealPlan.meals || !mealPlan.meals.length){
+    el.innerHTML = '<div class="empty-note">No plan yet — generate one above.</div>';
+    return;
+  }
+  const dotFor = { green: '<span class="rdot" style="background:var(--c-green)"></span>', yellow: '<span class="rdot" style="background:var(--c-yellow)"></span>', orange: '<span class="rdot" style="background:var(--c-orange)"></span>', red: '<span class="rdot" style="background:var(--c-red)"></span>' };
+  let html = mealPlan.meals.map(function(m, i){
+    if(i === planLoadingIndex){
+      return '<div class="plan-meal"><div class="plan-meal-head"><span class="plan-slot">' + (m.slot || '') + '</span></div><div class="analyzing"><div class="spinner"></div>Regenerating...</div></div>';
+    }
+    const dot = dotFor[m.rating] || '<span class="rdot" style="background:var(--c-neutral)"></span>';
+    return '<div class="plan-meal"><div class="plan-meal-head"><span>' + dot + '</span><span class="plan-slot">' + (m.slot || '') + '</span>' +
+      '<button onclick="regenerateMeal(' + i + ')" style="margin-left:auto; background:var(--card-2); border:1px solid var(--border); color:var(--text-dim); border-radius:8px; padding:4px 10px; font-size:11px; cursor:pointer;"><svg class="ic-svg" style="width:13px;height:13px;vertical-align:-2px;margin-right:4px" aria-hidden="true"><use href="#i-refresh"/></svg>Try Again</button></div>' +
+      '<div class="plan-idea">' + (m.idea || '') + '</div></div>';
+  }).join('');
+
+  if(mealPlan.shoppingStale){
+    html += '<div style="font-size:11.5px; color:var(--c-orange); margin:10px 0;">Shopping list may not reflect your swapped meal(s) yet.</div>';
+  }
+
+  if(mealPlan.shopping_list && mealPlan.shopping_list.length){
+    html += '<div class="section-label" style="margin-top:16px;">Shopping List Preview</div>';
+    const grouped = {};
+    mealPlan.shopping_list.forEach(function(i){
+      const cat = i.category || 'Other';
+      if(!grouped[cat]) grouped[cat] = [];
+      grouped[cat].push(i.item);
+    });
+    Object.keys(grouped).forEach(function(cat){
+      html += '<div class="shop-cat">' + cat + '</div>';
+      grouped[cat].forEach(function(item){
+        html += '<div style="font-size:12.5px; color:var(--text-dim); padding:4px 2px;">• ' + item + '</div>';
+      });
+    });
+    html += '<button class="btn-teal" style="width:100%; padding:10px; border-radius:9px; font-weight:700; font-size:13px; cursor:pointer; margin-top:10px;" onclick="sendPlanToGrocery()">Send Shopping List to Grocery Tab</button>';
+    if(mealPlan.shoppingStale){
+      html += '<button id="refreshShopBtn" class="btn-quiet" style="width:100%; padding:9px; border-radius:9px; font-weight:600; font-size:12px; cursor:pointer; margin-top:8px;" onclick="refreshShoppingList()">Refresh Shopping List from Current Plan</button>';
+    }
+  }
+  el.innerHTML = html;
+}
+
+function sendPlanToGrocery(){
+  if(!mealPlan || !mealPlan.shopping_list) return;
+  const existingNames = {};
+  groceryItems.forEach(function(g){ existingNames[g.name.toLowerCase()] = true; });
+  let added = 0;
+  mealPlan.shopping_list.forEach(function(i){
+    const nameLower = (i.item || '').toLowerCase();
+    if(nameLower && !existingNames[nameLower]){
+      groceryItems.push({ id: Date.now() + Math.random(), name: i.item, category: i.category || 'Other', checked: false });
+      existingNames[nameLower] = true;
+      added++;
+    }
+  });
+  saveGrocery();
+  toast('Added ' + added + ' item' + (added === 1 ? '' : 's') + ' to Grocery');
+  switchTab('grocery');
+}
+
+/* ============ GROCERY LIST ============ */
+function addGroceryItem(){
+  const input = document.getElementById('groceryInput');
+  const name = input.value.trim();
+  if(!name) return;
+  groceryItems.unshift({ id: Date.now(), name: name, category: 'Other', checked: false });
+  saveGrocery();
+  input.value = '';
+  renderGrocery();
+}
+function toggleGrocery(id){
+  const item = groceryItems.find(function(g){ return g.id === id; });
+  if(item) item.checked = !item.checked;
+  saveGrocery();
+  renderGrocery();
+}
+function deleteGroceryItem(id){
+  groceryItems = groceryItems.filter(function(g){ return g.id !== id; });
+  saveGrocery();
+  renderGrocery();
+}
+function clearCheckedGrocery(){
+  groceryItems = groceryItems.filter(function(g){ return !g.checked; });
+  saveGrocery();
+  renderGrocery();
+  toast('Checked items cleared');
+}
+function renderGrocery(){
+  const el = document.getElementById('groceryList');
+  if(!groceryItems.length){
+    el.innerHTML = '<div class="empty-note">No items yet — add one above or send a plan\'s shopping list here.</div>';
+    return;
+  }
+  const sorted = groceryItems.slice().sort(function(a,b){ return (a.checked === b.checked) ? 0 : (a.checked ? 1 : -1); });
+  el.innerHTML = sorted.map(function(g){
+    return '<div class="shop-item' + (g.checked ? ' checked' : '') + '" role="checkbox" tabindex="0" aria-checked="' + (g.checked ? 'true' : 'false') + '" onclick="toggleGrocery(' + g.id + ')" onkeydown="if(event.key===\' \'||event.key===\'Enter\'){event.preventDefault();toggleGrocery(' + g.id + ')}">' +
+      '<span class="shop-checkbox">' + (g.checked ? '✓' : '') + '</span>' +
+      '<span>' + esc(g.name) + '</span>' +
+      '<button class="shop-del" aria-label="Remove item" onclick="event.stopPropagation(); deleteGroceryItem(' + g.id + ')">✕</button></div>';
+  }).join('');
+}
+
+/* ============ QUICK SCAN ============ */
+function triggerScan(){
+  const key = localStorage.getItem('lazlog_groq_key');
+  if(!key){ toast('Add your Groq API key first'); goToSettingsForKey(); return; }
+  document.getElementById('scanInput').click();
+}
+async function handleScan(event){
+  const file = event.target.files[0];
+  event.target.value = '';
+  if(!file) return;
+  const key = localStorage.getItem('lazlog_groq_key');
+  if(!key){ toast('Add your Groq API key first'); goToSettingsForKey(); return; }
+
+  const row = document.getElementById('scanAnalyzingRow');
+  row.innerHTML = '<div class="analyzing"><div class="spinner"></div>Scanning...</div>';
+
+  try{
+    const dataUrl = await compressImage(file, 700);
+    const prompt = 'Look at this photo of a grocery or food item, likely a package or shelf item. Identify what it is and rate it green/yellow/orange/red as a healthy choice. Respond ONLY with valid JSON, no other text: {"name":"short name","rating":"green"|"yellow"|"orange"|"red","reason":"3-6 word reason"}';
+    const result = await callGroqVision(dataUrl, prompt, 150);
+    const rating = ['green','yellow','orange','red'].includes(result.rating) ? result.rating : 'yellow';
+    const scan = { id: Date.now(), name: result.name || 'Unidentified item', rating: rating, reason: result.reason || '', ts: new Date().toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'}) };
+    quickScans.unshift(scan);
+    quickScans = quickScans.slice(0, 20);
+    saveScans();
+    renderScans();
+    toast('Scanned: ' + scan.name);
+  } catch(err){
+    console.error('LAZLOG scan error:', err);
+    toast('Scan failed — check browser console');
+  } finally {
+    row.innerHTML = '';
+  }
+}
+function deleteScan(id){
+  quickScans = quickScans.filter(function(s){ return s.id !== id; });
+  saveScans();
+  renderScans();
+}
+function addScanToGrocery(id){
+  const scan = quickScans.find(function(s){ return s.id === id; });
+  if(!scan) return;
+  const existingNames = {};
+  groceryItems.forEach(function(g){ existingNames[g.name.toLowerCase()] = true; });
+  if(!existingNames[scan.name.toLowerCase()]){
+    groceryItems.unshift({ id: Date.now(), name: scan.name, category: 'Other', checked: false });
+    saveGrocery();
+    toast('Added to Grocery List');
+  } else {
+    toast('Already on your list');
+  }
+}
+function renderScans(){
+  const el = document.getElementById('scanList');
+  if(!quickScans.length){
+    el.innerHTML = '<div class="empty-note">No scans yet — snap a shelf item to get a quick read.</div>';
+    return;
+  }
+  const dotFor = { green: '<span class="rdot" style="background:var(--c-green)"></span>', yellow: '<span class="rdot" style="background:var(--c-yellow)"></span>', orange: '<span class="rdot" style="background:var(--c-orange)"></span>', red: '<span class="rdot" style="background:var(--c-red)"></span>' };
+  el.innerHTML = quickScans.map(function(s){
+    return '<div class="scan-chip"><span>' + (dotFor[s.rating] || '<span class="rdot" style="background:var(--c-neutral)"></span>') + '</span>' +
+      '<div class="scan-info"><div class="scan-name">' + esc(s.name) + '</div><div class="scan-reason">' + esc(s.reason || '') + ' · ' + esc(s.ts) + '</div></div>' +
+      '<button onclick="addScanToGrocery(' + s.id + ')">+ List</button>' +
+      '<button aria-label="Delete scan" onclick="deleteScan(' + s.id + ')">✕</button></div>';
+  }).join('');
+}
+
+/* ============ INIT ============ */
+function dismissWelcome(){ localStorage.setItem('lazlog_welcome_off', '1'); render(); }
+document.getElementById('verStamp').textContent = 'v' + APP_VERSION;
+document.getElementById('aboutVer').textContent = 'LAZLOG v' + APP_VERSION;
+document.getElementById('nav-home').setAttribute('aria-current', 'page');
+if('serviceWorker' in navigator){
+  let hadController = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener('controllerchange', function(){
+    if(hadController) document.getElementById('updateBar').hidden = false;
+    hadController = true;
+  });
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('./sw.js', { scope: './' }).catch(function(err){ console.error('LAZLOG SW registration failed:', err); });
+  });
+}
+populateModels();
+render();
+</script>
+</body>
+</html>
