@@ -2,1251 +2,146 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>LAZLOG — Daily Tracker</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LAZLOG — Daily Diet &amp; Habit Tracker</title>
+<meta name="description" content="LAZLOG is a private diet and habit tracker. Tap to log, snap a meal for instant nutrition, and get an honest verdict on your day. Your data never leaves your device.">
+<meta name="theme-color" content="#08090d">
+<meta property="og:title" content="LAZLOG — Daily Diet & Habit Tracker">
+<meta property="og:description" content="Tap to log. Snap a meal. Get the honest verdict. Private by design.">
+<meta property="og:image" content="https://johnlaz.github.io/lazlog/app/icon-512.png">
+<meta property="og:url" content="https://johnlaz.github.io/lazlog/">
+<link rel="icon" type="image/png" href="app/icon-192.png">
+<link rel="apple-touch-icon" href="app/icon-192.png">
 <style>
   :root{
-    --bg:#0a0a0f; --card:#14141c; --card-2:#1a1a24;
-    --border:rgba(255,255,255,0.08); --border-2:rgba(255,255,255,0.14);
-    --text:#e8e6e1; --text-dim:#8a8894;
-    --gold:#c9a45c; --gold-dim:rgba(201,164,92,0.12);
-    --teal:#2dd4bf; --teal-dim:rgba(45,212,191,0.12);
-    --red:#e8615c; --red-dim:rgba(232,97,92,0.12);
-    --c-green:#3ddc84; --c-yellow:#f2c94c; --c-orange:#f2994a; --c-red:#eb5757; --c-neutral:#8a8894;
+    --sans:ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    --bg:#08090d; --card:#11131a; --card-2:#171a23; --border:rgba(255,255,255,0.08); --border-2:rgba(255,255,255,0.14);
+    --text:#e8e6e1; --dim:#9a98a4; --accent:#8fb0ff;
+    --green:#3ddc84; --yellow:#f2c94c; --orange:#f2994a; --red:#eb5757;
   }
-  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
-  body{
-    margin:0; background:var(--bg); color:var(--text);
-    font-family:'DM Sans', sans-serif;
-    min-height:100vh; padding:16px; padding-bottom:150px;
-    max-width:480px; margin-left:auto; margin-right:auto;
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{margin:0; background:radial-gradient(1100px 520px at 50% -160px, rgba(143,176,255,0.13), transparent 70%), var(--bg); color:var(--text); font-family:var(--sans); line-height:1.55; -webkit-font-smoothing:antialiased;}
+  a{color:var(--accent);}
+  .wrap{max-width:1040px; margin:0 auto; padding:0 20px;}
+  nav{display:flex; align-items:center; justify-content:space-between; padding:18px 0;}
+  .brand{display:flex; align-items:center; gap:11px; font-weight:800; letter-spacing:3px; font-size:17px; text-decoration:none; color:var(--text);}
+  .brand span{color:var(--accent);} .brand svg{width:32px; height:32px;}
+  .btn{display:inline-flex; align-items:center; gap:8px; padding:13px 22px; border-radius:12px; font-weight:700; font-size:15px; text-decoration:none; border:1px solid var(--accent); background:var(--accent); color:#0a0d16;}
+  .btn.ghost{background:transparent; color:var(--accent);}
+  .btn.sm{padding:8px 16px; font-size:13px; border-radius:10px;}
+  .btn:focus-visible,a:focus-visible{outline:2px solid var(--accent); outline-offset:3px;}
+  .hero{display:grid; grid-template-columns:1.1fr 0.9fr; gap:40px; align-items:center; padding:48px 0 72px;}
+  .eyebrow{display:inline-flex; align-items:center; gap:8px; font-size:12.5px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--green); background:rgba(61,220,132,0.1); border:1px solid rgba(61,220,132,0.3); padding:5px 12px; border-radius:20px;}
+  h1{font-size:clamp(34px,6vw,58px); line-height:1.05; margin:18px 0 16px; letter-spacing:-0.5px; font-weight:800;}
+  h1 em{font-style:normal; background:linear-gradient(90deg,var(--green),var(--yellow) 40%,var(--orange) 70%,var(--red)); -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .lede{font-size:18px; color:var(--dim); max-width:520px; margin:0 0 28px;}
+  .cta{display:flex; gap:12px; flex-wrap:wrap;}
+  .fine{font-size:13px; color:var(--dim); margin-top:14px;}
+  .phones{position:relative; display:flex; justify-content:center; min-height:520px;}
+  .phone{width:min(46%,230px); aspect-ratio:9/19; border-radius:28px; border:1px solid var(--border-2); background:var(--card); box-shadow:0 30px 70px rgba(0,0,0,0.6); overflow:hidden; position:absolute;}
+  .phone img{width:100%; height:100%; object-fit:cover; object-position:top; display:block;}
+  .phone.a{left:0; top:20px; transform:rotate(-4deg); z-index:2;}
+  .phone.b{right:0; top:60px; transform:rotate(4deg);}
+  section{padding:56px 0; border-top:1px solid var(--border);}
+  h2{font-size:clamp(26px,4vw,36px); margin:0 0 10px; letter-spacing:-0.3px;}
+  .sec-sub{color:var(--dim); font-size:17px; max-width:620px; margin:0 0 32px;}
+  .grid{display:grid; grid-template-columns:repeat(3,1fr); gap:16px;}
+  .card{background:var(--card); border:1px solid var(--border); border-radius:16px; padding:22px;}
+  .card h3{margin:12px 0 6px; font-size:17px;} .card p{margin:0; color:var(--dim); font-size:14.5px;}
+  .ico{width:42px; height:42px; border-radius:12px; display:grid; place-items:center; background:var(--card-2); border:1px solid var(--border);}
+  .ico svg{width:22px; height:22px; stroke:var(--accent); fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round;}
+  .steps{counter-reset:s; display:grid; grid-template-columns:repeat(3,1fr); gap:16px;}
+  .step{background:var(--card); border:1px solid var(--border); border-radius:16px; padding:22px; counter-increment:s;}
+  .step::before{content:counter(s); display:grid; place-items:center; width:30px; height:30px; border-radius:50%; background:var(--accent); color:#0a0d16; font-weight:800; margin-bottom:12px;}
+  .step h3{margin:0 0 6px; font-size:17px;} .step p{margin:0; color:var(--dim); font-size:14.5px;}
+  .legend{display:flex; gap:10px; flex-wrap:wrap; margin-top:24px;}
+  .pill{display:inline-flex; align-items:center; gap:8px; padding:7px 14px; border-radius:20px; font-size:13.5px; font-weight:600; border:1px solid var(--border-2); background:var(--card);}
+  .pill i{width:10px; height:10px; border-radius:50%;}
+  .privacy{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  .privacy ul{margin:0; padding-left:18px; color:var(--dim); font-size:15px;} .privacy li{margin:6px 0;}
+  footer{border-top:1px solid var(--border); padding:30px 0 44px; text-align:center; color:var(--dim); font-size:14px;}
+  footer a{text-decoration:none;}
+  @media (max-width:820px){
+    .hero{grid-template-columns:1fr; padding-top:24px; gap:20px;}
+    .phones{min-height:470px;}
+    .grid,.steps,.privacy{grid-template-columns:1fr;}
+    .phone{width:min(46%,200px);}
   }
-  h1{font-family:'Playfair Display', serif; font-size:24px; font-weight:700; color:var(--gold); margin:0; letter-spacing:0.5px;}
-  .sub{font-size:11px; color:var(--text-dim); margin-top:2px;}
-  header{border-bottom:1px solid var(--border); padding-bottom:14px; margin-bottom:14px;}
-
-  .day-nav{display:flex; align-items:center; justify-content:space-between; background:var(--card); border:1px solid var(--border); border-radius:12px; padding:8px 10px; margin-bottom:16px;}
-  .day-nav button{background:var(--card-2); border:1px solid var(--border); color:var(--text-dim); width:30px; height:30px; border-radius:8px; cursor:pointer; font-size:14px;}
-  .day-nav button:active{transform:scale(0.92);}
-  .day-nav button:disabled{opacity:0.3; cursor:default;}
-  .day-label{font-size:13px; font-weight:600; text-align:center; flex:1;}
-  .day-label .today-tag{display:block; font-size:9.5px; color:var(--teal); font-weight:600; letter-spacing:0.5px; margin-top:1px;}
-
-  .trend-strip{display:flex; justify-content:space-between; gap:4px; margin-bottom:14px; padding:0 2px;}
-  .trend-dot-wrap{display:flex; flex-direction:column; align-items:center; gap:5px; cursor:pointer; flex:1; padding:4px 0;}
-  .trend-dot{width:13px; height:13px; border-radius:50%; transition:opacity 0.15s, box-shadow 0.15s;}
-  .trend-daylabel{font-size:9px; color:var(--text-dim); font-weight:600; letter-spacing:0.5px;}
-
-  .verdict{background:linear-gradient(135deg, var(--card), var(--card-2)); border:1px solid var(--border-2); border-radius:14px; padding:14px 16px; margin-bottom:18px;}
-  .verdict-top{display:flex; align-items:center; gap:10px; margin-bottom:8px;}
-  .day-badge{display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:700; letter-spacing:0.5px; padding:5px 11px; border-radius:20px; white-space:nowrap;}
-  .day-badge .dot{width:9px; height:9px; border-radius:50%;}
-  .verdict-label{font-size:10px; text-transform:uppercase; letter-spacing:1px; color:var(--text-dim); margin-bottom:4px;}
-  .verdict-text{font-size:14px; line-height:1.5; font-weight:500;}
-  .log-dot{width:8px; height:8px; border-radius:50%; margin-top:4px; flex-shrink:0;}
-
-  section{margin-bottom:20px;}
-  .section-label{font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--text-dim); margin-bottom:10px; font-weight:600;}
-  .section-caption{font-size:10.5px; color:var(--text-dim); margin:-6px 0 10px; line-height:1.4;}
-
-  .grid4{display:grid; grid-template-columns:repeat(4,1fr); gap:8px;}
-  .tap-btn{background:var(--card); border:1px solid var(--border); border-radius:14px; padding:12px 4px; display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer; color:var(--text);}
-  .tap-btn:active{transform:scale(0.95);}
-  .tap-btn .ic{font-size:20px;}
-  .tap-btn .lbl{font-size:9.5px; color:var(--text-dim); text-align:center; line-height:1.2;}
-  .tap-btn .count{font-family:'DM Mono', monospace; font-size:15px; font-weight:500;}
-  .tap-btn.coffee .count{color:#d9a441;}
-  .tap-btn.water .count{color:var(--teal);}
-  .tap-btn.smoke .count{color:var(--red);}
-  .tap-btn.junk .count{color:var(--red);}
-  .tap-btn.wide{flex-direction:row; justify-content:center; gap:10px; padding:13px; margin-top:8px;}
-  .tap-btn.wide .lbl{font-size:12px;}
-  .tap-btn.photo{background:linear-gradient(180deg, var(--card), var(--gold-dim)); border-color:rgba(201,164,92,0.35);}
-  .tap-btn.chef{background:linear-gradient(180deg, var(--card), var(--teal-dim)); border-color:rgba(45,212,191,0.3);}
-
-  .row-card{background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px;}
-  .weight-row{display:flex; gap:8px; align-items:center;}
-  .weight-row input{flex:1; background:var(--card-2); border:1px solid var(--border); border-radius:10px; padding:10px 12px; color:var(--text); font-family:'DM Mono', monospace; font-size:15px;}
-  .weight-row input:focus{outline:none; border-color:var(--gold);}
-  .weight-row button{background:var(--gold-dim); border:1px solid var(--gold); color:var(--gold); border-radius:10px; padding:10px 16px; font-weight:600; font-size:12px; cursor:pointer; white-space:nowrap;}
-  .weight-row button:active{transform:scale(0.96);}
-  .weight-latest{font-size:11px; color:var(--text-dim); margin-top:8px;}
-  .weight-latest span{color:var(--gold); font-family:'DM Mono', monospace;}
-
-  .grid3{display:grid; grid-template-columns:repeat(3,1fr); gap:8px;}
-  .feel-btn{background:var(--card-2); border:1px solid var(--border); border-radius:10px; padding:10px 4px; font-size:12px; font-weight:500; color:var(--text-dim); cursor:pointer; text-align:center;}
-  .feel-btn[data-feel="Good"].active{background:color-mix(in srgb, var(--c-green) 18%, transparent); border-color:var(--c-green); color:var(--c-green);}
-  .feel-btn[data-feel="Okay"].active{background:color-mix(in srgb, var(--c-yellow) 18%, transparent); border-color:var(--c-yellow); color:var(--c-yellow);}
-  .feel-btn[data-feel="Rough"].active{background:color-mix(in srgb, var(--c-red) 18%, transparent); border-color:var(--c-red); color:var(--c-red);}
-
-  .timeline{max-height:220px; overflow-y:auto; display:flex; flex-direction:column; gap:6px;}
-  .log-item{background:var(--card); border:1px solid var(--border); border-radius:10px; padding:9px 12px; display:flex; gap:10px; align-items:flex-start; font-size:12.5px;}
-  .log-item .log-body{flex:1; display:flex; gap:10px; align-items:flex-start;}
-  .log-del{background:none; border:none; color:var(--text-dim); font-size:15px; line-height:1; cursor:pointer; padding:2px 4px; flex-shrink:0; margin-top:-1px;}
-  .log-del:active{color:var(--red); transform:scale(0.9);}
-  .log-time{font-family:'DM Mono', monospace; font-size:11px; color:var(--text-dim); white-space:nowrap; margin-top:1px;}
-  .log-tag{color:var(--text-dim); font-weight:600; margin-right:4px;}
-  .empty-note{font-size:12px; color:var(--text-dim); font-style:italic; padding:8px 2px;}
-
-  footer{position:fixed; bottom:64px; left:0; right:0; background:linear-gradient(180deg, transparent, var(--bg) 30%); padding:12px 16px; display:flex; justify-content:center; z-index:20;}
-  footer form{width:100%; max-width:448px; position:relative;}
-  footer input{width:100%; background:var(--card); border:1px solid var(--border-2); border-radius:14px; padding:13px 60px 13px 16px; color:var(--text); font-size:14px;}
-  footer input:focus{outline:none; border-color:var(--gold);}
-  footer button{position:absolute; right:6px; top:6px; bottom:6px; background:var(--gold); border:none; color:#12100a; font-weight:700; font-size:12px; border-radius:9px; padding:0 16px; cursor:pointer;}
-  footer button:active{transform:scale(0.96);}
-
-  .bottom-nav{position:fixed; bottom:0; left:0; right:0; background:var(--card); border-top:1px solid var(--border-2); display:flex; z-index:30; padding-bottom:env(safe-area-inset-bottom);}
-  .nav-btn{flex:1; background:none; border:none; color:var(--text-dim); display:flex; flex-direction:column; align-items:center; gap:2px; padding:9px 4px 8px; cursor:pointer; font-family:'DM Sans', sans-serif;}
-  .nav-btn .nav-ic{font-size:18px;}
-  .nav-btn .nav-lbl{font-size:9.5px; font-weight:600;}
-  .nav-btn.active{color:var(--gold);}
-
-  .tab-content{display:none;}
-  .tab-content.active{display:block;}
-
-  .confirm-bar{background:var(--card); border:1px solid var(--red); border-radius:12px; padding:10px 14px; display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; font-size:12px; gap:10px;}
-  .confirm-bar .btns{display:flex; gap:8px; flex-shrink:0;}
-  .confirm-bar button{border-radius:8px; padding:6px 12px; font-size:11px; font-weight:600; cursor:pointer; border:1px solid;}
-  .btn-danger{background:var(--red-dim); border-color:var(--red); color:var(--red);}
-  .btn-quiet{background:var(--card-2); border-color:var(--border); color:var(--text-dim);}
-  .btn-gold{background:var(--gold-dim); border-color:var(--gold); color:var(--gold);}
-  .btn-teal{background:var(--teal-dim); border-color:var(--teal); color:var(--teal);}
-
-  .toast{position:fixed; top:16px; left:50%; transform:translateX(-50%); background:var(--gold); color:#12100a; font-size:12px; font-weight:600; padding:8px 16px; border-radius:20px; opacity:0; pointer-events:none; transition:opacity 0.2s; z-index:80; max-width:90%; text-align:center;}
-  .toast.show{opacity:1;}
-
-  .modal-overlay{position:fixed; inset:0; background:rgba(0,0,0,0.6); display:none; align-items:center; justify-content:center; z-index:60; padding:20px;}
-  .modal-overlay.show{display:flex;}
-  .modal{background:var(--card); border:1px solid var(--border-2); border-radius:16px; padding:20px; width:100%; max-width:400px; max-height:85vh; overflow-y:auto; -webkit-overflow-scrolling:touch;}
-  .modal h2{font-family:'Playfair Display', serif; font-size:17px; color:var(--gold); margin:0 0 6px;}
-  .modal p{font-size:12px; color:var(--text-dim); line-height:1.5; margin:0 0 14px;}
-  .modal input{width:100%; background:var(--card-2); border:1px solid var(--border); border-radius:10px; padding:11px 12px; color:var(--text); font-family:'DM Mono', monospace; font-size:13px; margin-bottom:12px;}
-  .modal input:focus{outline:none; border-color:var(--gold);}
-  .modal-btns{display:flex; gap:8px; justify-content:flex-end;}
-  .modal-btns button{border-radius:9px; padding:9px 16px; font-size:12px; font-weight:600; cursor:pointer; border:1px solid;}
-
-  .analyzing{display:flex; align-items:center; gap:8px; font-size:12px; color:var(--gold); padding:8px 2px;}
-  .spinner{width:12px; height:12px; border:2px solid var(--gold-dim); border-top-color:var(--gold); border-radius:50%; animation:spin 0.7s linear infinite;}
-  @keyframes spin{to{transform:rotate(360deg);}}
-
-  .ask-badge{display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:700; padding:5px 12px; border-radius:20px; margin-bottom:10px;}
-  .ask-dish{font-size:14px; font-weight:600; margin-bottom:4px;}
-  .ask-verdict{font-size:13px; font-weight:600; margin-bottom:8px; line-height:1.4;}
-  .ask-details{font-size:12.5px; color:var(--text-dim); line-height:1.5; margin-bottom:12px;}
-  .ask-alts-label{font-size:10px; text-transform:uppercase; letter-spacing:1px; color:var(--text-dim); margin-bottom:6px; font-weight:600;}
-  .ask-alts{list-style:none; margin:0 0 4px; padding:0; display:flex; flex-direction:column; gap:6px;}
-  .ask-alt-item{font-size:12.5px; background:var(--card-2); border:1px solid var(--border); border-radius:8px; padding:8px 10px; cursor:pointer;}
-  .ask-alt-head{display:flex; justify-content:space-between; align-items:center; gap:8px;}
-  .ask-alt-chev{font-size:10px; color:var(--text-dim); transition:transform 0.2s; flex-shrink:0;}
-  .ask-alt-item.open .ask-alt-chev{transform:rotate(180deg);}
-  .ask-alt-reason{max-height:0; overflow:hidden; font-size:11.5px; color:var(--text-dim); line-height:1.4; transition:max-height 0.25s ease, margin-top 0.25s ease;}
-  .ask-alt-item.open .ask-alt-reason{max-height:160px; margin-top:6px;}
-  .ask-alt-actions{display:flex; gap:6px; margin-top:8px;}
-  .ask-alt-actions button{flex:1; background:var(--card); border:1px solid var(--border-2); color:var(--text); font-size:10.5px; font-weight:600; padding:6px 4px; border-radius:7px; cursor:pointer;}
-  .ask-alt-actions button:first-child{border-color:var(--teal); color:var(--teal);}
-  .ask-alt-actions button:last-child{border-color:var(--gold); color:var(--gold);}
-  .ask-thread{max-height:150px; overflow-y:auto; display:flex; flex-direction:column; gap:6px; margin-bottom:10px;}
-  .ask-thread:empty{display:none; margin-bottom:0;}
-  .ask-msg-user{align-self:flex-end; max-width:85%; background:var(--gold-dim); border:1px solid rgba(201,164,92,0.25); color:var(--text); font-size:12px; padding:7px 11px; border-radius:10px 10px 2px 10px;}
-  .ask-msg-ai{align-self:flex-start; max-width:88%; background:var(--card-2); border:1px solid var(--border); font-size:12px; padding:7px 11px; border-radius:10px 10px 10px 2px; display:flex; align-items:flex-start; gap:6px;}
-
-  .plan-meal{background:var(--card); border:1px solid var(--border); border-radius:12px; padding:12px; margin-bottom:8px;}
-  .plan-meal-head{display:flex; align-items:center; gap:8px; margin-bottom:4px;}
-  .plan-slot{font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-dim); font-weight:700;}
-  .plan-idea{font-size:13px; line-height:1.4;}
-  .shop-cat{font-size:10px; text-transform:uppercase; letter-spacing:1px; color:var(--text-dim); font-weight:700; margin:14px 0 6px;}
-  .shop-item{background:var(--card); border:1px solid var(--border); border-radius:10px; padding:9px 12px; font-size:13px; margin-bottom:6px; display:flex; align-items:center; gap:10px; cursor:pointer;}
-  .shop-item.checked{opacity:0.45; text-decoration:line-through;}
-  .shop-checkbox{width:16px; height:16px; border-radius:5px; border:1.5px solid var(--border-2); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:10px;}
-  .shop-item.checked .shop-checkbox{background:var(--teal); border-color:var(--teal); color:#0a0a0f;}
-  .shop-del{margin-left:auto; background:none; border:none; color:var(--text-dim); font-size:14px; cursor:pointer; padding:2px 4px;}
-  .add-row{display:flex; gap:8px; margin-bottom:14px;}
-  .add-row input{flex:1; background:var(--card-2); border:1px solid var(--border); border-radius:10px; padding:10px 12px; color:var(--text); font-size:13px;}
-  .add-row input:focus{outline:none; border-color:var(--gold);}
-  .add-row button{background:var(--gold-dim); border:1px solid var(--gold); color:var(--gold); border-radius:10px; padding:0 16px; font-weight:600; font-size:13px; cursor:pointer;}
-
-  .scan-chip{background:var(--card); border:1px solid var(--border); border-radius:12px; padding:10px 12px; margin-bottom:8px; display:flex; align-items:center; gap:10px;}
-  .scan-chip .scan-info{flex:1;}
-  .scan-chip .scan-name{font-size:13px; font-weight:600;}
-  .scan-chip .scan-reason{font-size:11px; color:var(--text-dim); margin-top:1px;}
-  .scan-chip button{background:var(--card-2); border:1px solid var(--border); color:var(--text-dim); border-radius:8px; padding:5px 9px; font-size:11px; cursor:pointer;}
-
-  .legend{display:flex; gap:12px; flex-wrap:wrap; font-size:10.5px; color:var(--text-dim); margin-top:10px;}
-  .legend span{display:inline-flex; align-items:center; gap:4px;}
-  .legend .dot{width:7px; height:7px; border-radius:50%;}
+  @media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto;} }
 </style>
 </head>
 <body>
+<div class="wrap">
+  <nav aria-label="Primary">
+    <a class="brand" href="./" aria-label="LAZLOG home">
+      <svg viewBox="0 0 34 34" aria-hidden="true"><g fill="none" stroke-width="4.2" stroke-linecap="round" transform="rotate(-90 17 17)"><circle cx="17" cy="17" r="12" stroke="#3ddc84" stroke-dasharray="11 64.4"/><circle cx="17" cy="17" r="12" stroke="#f2c94c" stroke-dasharray="11 64.4" stroke-dashoffset="-18.85"/><circle cx="17" cy="17" r="12" stroke="#f2994a" stroke-dasharray="11 64.4" stroke-dashoffset="-37.7"/><circle cx="17" cy="17" r="12" stroke="#eb5757" stroke-dasharray="11 64.4" stroke-dashoffset="-56.55"/></g><circle cx="17" cy="17" r="3.2" fill="#e8e6e1"/></svg>
+      <b style="font-weight:inherit">LAZ<span>LOG</span></b>
+    </a>
+    <a class="btn sm" href="app/">Open app</a>
+  </nav>
 
-<div class="toast" id="toast"></div>
-
-<div class="modal-overlay" id="askModal">
-  <div class="modal" style="max-width:440px;">
-    <h2>Ask My Chef</h2>
-    <p>Tell it what you're thinking about eating or cooking, then keep refining — swap ingredients, ask "what if I baked it instead," whatever. It remembers the conversation.</p>
-    <div class="ask-thread" id="askThread"></div>
-    <textarea id="askInput" placeholder="e.g. cottage cheese with granola and honey, or frying up some chicken tenders..." style="width:100%; background:var(--card-2); border:1px solid var(--border); border-radius:10px; padding:11px 12px; color:var(--text); font-family:'DM Sans', sans-serif; font-size:13px; min-height:56px; resize:vertical; margin-bottom:12px;"></textarea>
-    <div id="askResult"></div>
-    <div class="modal-btns" id="askBtns" style="flex-wrap:wrap;">
-      <button class="btn-quiet" onclick="closeAskModal()">Close</button>
-      <button class="btn-gold" onclick="submitAsk()" id="askSubmitBtn">Ask</button>
+  <header class="hero">
+    <div>
+      <span class="eyebrow">Private by design</span>
+      <h1>Log your day. Get the <em>honest verdict.</em></h1>
+      <p class="lede">LAZLOG is a diet and habit tracker that tells you straight how today is going. Tap to log, snap a meal for instant nutrition, and keep everything on your own device.</p>
+      <div class="cta">
+        <a class="btn" href="app/">Open LAZLOG</a>
+        <a class="btn ghost" href="#how">How it works</a>
+      </div>
+      <p class="fine">Free. No account. Installs to your home screen from your browser.</p>
     </div>
+    <div class="phones" aria-hidden="false">
+      <div class="phone a"><img src="app/shot-narrow-1.png" width="1080" height="1920" alt="LAZLOG home screen showing a WIN verdict, quick-tap logging and a seven-day trend"></div>
+      <div class="phone b"><img src="app/shot-narrow-2.png" width="1080" height="1920" alt="LAZLOG meal plan with colour-rated meals and a shopping list" loading="lazy"></div>
+    </div>
+  </header>
+
+  <section id="features">
+    <h2>Built for the way you actually eat</h2>
+    <p class="sec-sub">No calorie-math homework. Every meal gets a plain colour rating, and every day gets a verdict.</p>
+    <div class="grid">
+      <div class="card"><div class="ico"><svg viewBox="0 0 24 24"><path d="M5 9h10v5a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4V9z"/><path d="M15 10h1.5a2.5 2.5 0 0 1 0 5H15"/><path d="M8 3v2M12 3v2"/></svg></div><h3>One-tap logging</h3><p>Coffee, water, smokes, junk food, weight and how you feel. One tap each, with a running count for the day.</p></div>
+      <div class="card"><div class="ico"><svg viewBox="0 0 24 24"><path d="M4 8h3l1.5-2h7L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></div><h3>Snap a meal</h3><p>Take a photo and get an estimate of calories and macros, a colour rating and a digestion note, logged automatically.</p></div>
+      <div class="card"><div class="ico"><svg viewBox="0 0 24 24"><path d="M7 14a4 4 0 1 1 1.5-7.7A4 4 0 0 1 15.5 6.3 4 4 0 1 1 17 14z"/><path d="M7 14v5h10v-5"/></svg></div><h3>Ask My Chef</h3><p>Describe what you are about to eat, then keep refining. Swap ingredients, change the cooking method, get healthier alternatives.</p></div>
+      <div class="card"><div class="ico"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M8 3v4M16 3v4"/></svg></div><h3>Meal plans</h3><p>Tell it what is in your kitchen and get a realistic day of meals. Not feeling one? Regenerate just that meal.</p></div>
+      <div class="card"><div class="ico"><svg viewBox="0 0 24 24"><path d="M3 4h2l2.2 11h10l2-8H6.5"/><circle cx="9" cy="19" r="1.4"/><circle cx="17" cy="19" r="1.4"/></svg></div><h3>Grocery list and scan</h3><p>Send a plan's shopping list straight to Grocery, or scan an item on the shelf for a quick colour read.</p></div>
+      <div class="card"><div class="ico"><svg viewBox="0 0 24 24"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg></div><h3>Simple backup and restore</h3><p>One-tap backup and restore. Move to a new phone without losing a day.</p></div>
+    </div>
+    <div class="legend" aria-label="Rating colours">
+      <span class="pill"><i style="background:var(--green)"></i>Good choice</span>
+      <span class="pill"><i style="background:var(--yellow)"></i>Moderate</span>
+      <span class="pill"><i style="background:var(--orange)"></i>Caution</span>
+      <span class="pill"><i style="background:var(--red)"></i>Watch this one</span>
+    </div>
+  </section>
+
+  <section id="how">
+    <h2>How it works</h2>
+    <p class="sec-sub">Three minutes to set up, a few seconds a day after that.</p>
+    <div class="steps">
+      <div class="step"><h3>Open and install</h3><p>Open the app in your browser and add it to your home screen. It works offline for logging.</p></div>
+      <div class="step"><h3>Add a free Groq key</h3><p>Optional, for photo analysis, Ask My Chef and meal plans. Paste your own key once. It stays on your device.</p></div>
+      <div class="step"><h3>Log and read the verdict</h3><p>Tap through your day. LAZLOG scores it and shows your last seven days at a glance.</p></div>
+    </div>
+  </section>
+
+  <section id="privacy">
+    <h2>Private by design</h2>
+    <p class="sec-sub">There is no LAZLOG server and no account. Everything lives in your browser.</p>
+    <div class="privacy">
+      <div class="card"><h3 style="margin-top:0">Stays on your device</h3><ul><li>Logs, weight, meal plans and grocery lists</li><li>Your Groq API key</li><li>Your backups, which you control</li></ul></div>
+      <div class="card"><h3 style="margin-top:0">Sent to Groq only when you ask</h3><ul><li>A meal photo when you tap Snap a Meal or Scan</li><li>Text you type into Ask My Chef or Meal Plan</li><li>Sent with your own key, directly from your browser</li></ul></div>
+    </div>
+  </section>
+</div>
+
+<footer>
+  <div class="wrap">
+    <p>© 2026 LAZLAB Creations. All Rights Reserved.</p>
+    <p><a href="mailto:lazlab.io@gmail.com">lazlab.io@gmail.com</a></p>
   </div>
-</div>
-
-<header>
-  <h1>LAZLOG</h1>
-  <div class="sub">Local-First Diet &amp; Habit Tracker</div>
-</header>
-
-<!-- ============ HOME TAB ============ -->
-<div class="tab-content active" id="tab-home">
-
-  <div class="day-nav">
-    <button onclick="shiftDay(-1)">◀</button>
-    <div class="day-label" id="dayLabel">Today<span class="today-tag" id="todayTag"></span></div>
-    <button id="nextDayBtn" onclick="shiftDay(1)">▶</button>
-  </div>
-
-  <div class="trend-strip" id="trendStrip"></div>
-
-  <div class="verdict">
-    <div class="verdict-top">
-      <span class="day-badge" id="dayBadge"><span class="dot"></span><span id="dayBadgeText">—</span></span>
-    </div>
-    <div class="verdict-label" id="verdictLabel">Today's Verdict</div>
-    <div class="verdict-text" id="verdictText">Log something to get roasted or praised.</div>
-  </div>
-
-  <section>
-    <div class="section-label">Quick Tap</div>
-    <div class="grid4">
-      <div class="tap-btn coffee" onclick="quickLog('Coffee','Cup of coffee')">
-        <div class="ic">☕</div><div class="lbl">Coffee</div><div class="count" id="cnt-Coffee">0</div>
-      </div>
-      <div class="tap-btn water" onclick="quickLog('Water','Bottle of water')">
-        <div class="ic">💧</div><div class="lbl">Water</div><div class="count" id="cnt-Water">0</div>
-      </div>
-      <div class="tap-btn smoke" onclick="quickLog('Smoked','Smoked')">
-        <div class="ic">🚬</div><div class="lbl">Smoked</div><div class="count" id="cnt-Smoked">0</div>
-      </div>
-      <div class="tap-btn junk" onclick="quickLog('Junk','Ate junk food')">
-        <div class="ic">🍔</div><div class="lbl">Ate Junk</div><div class="count" id="cnt-Junk">0</div>
-      </div>
-    </div>
-    <div class="tap-btn photo wide" onclick="triggerPhoto()">
-      <div class="ic">📸</div><div class="lbl">Snap a Meal — auto-log nutrition</div>
-    </div>
-    <input type="file" id="photoInput" accept="image/*" capture="environment" style="display:none;" onchange="handlePhoto(event)">
-    <div id="analyzingRow"></div>
-    <div class="tap-btn chef wide" onclick="openAskModal()">
-      <div class="ic">🧑‍🍳</div><div class="lbl">Ask My Chef — is this healthy?</div>
-    </div>
-    <div class="legend">
-      <span><span class="dot" style="background:var(--c-green);"></span>good choice</span>
-      <span><span class="dot" style="background:var(--c-yellow);"></span>moderate</span>
-      <span><span class="dot" style="background:var(--c-orange);"></span>caution</span>
-      <span><span class="dot" style="background:var(--c-red);"></span>watch this one</span>
-    </div>
-  </section>
-
-  <section>
-    <div class="section-label">Weight</div>
-    <div class="row-card">
-      <div class="weight-row">
-        <input type="number" id="weightInput" placeholder="Enter weight (lbs)" step="0.1">
-        <button onclick="logWeight()">Log</button>
-      </div>
-      <div class="weight-latest" id="weightLatest"></div>
-      <div id="weightSparkline"></div>
-    </div>
-  </section>
-
-  <section>
-    <div class="section-label">How I Feel</div>
-    <div class="row-card">
-      <div class="grid3" id="feelGrid">
-        <div class="feel-btn" data-feel="Good" onclick="setFeel('Good')">Good</div>
-        <div class="feel-btn" data-feel="Okay" onclick="setFeel('Okay')">Okay</div>
-        <div class="feel-btn" data-feel="Rough" onclick="setFeel('Rough')">Rough</div>
-      </div>
-    </div>
-  </section>
-
-  <section>
-    <div class="section-label" id="timelineLabel">Today's Timeline</div>
-    <div class="timeline" id="timeline"></div>
-  </section>
-
-</div>
-
-<!-- ============ PLAN TAB ============ -->
-<div class="tab-content" id="tab-plan">
-  <section>
-    <div class="section-label">Meal Plan</div>
-    <div class="section-caption">Generates a full day of realistic meal ideas plus a shopping list you can send straight to Grocery. Not happy with one meal? Regenerate just that one and keep the rest.</div>
-    <div class="row-card" style="margin-bottom:14px;">
-      <div style="font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--text-dim); font-weight:600; margin-bottom:8px;">What do you have on hand?</div>
-      <textarea id="pantryInput" placeholder="e.g. eggs, chicken breast, spinach, rice..." onchange="savePantry()" style="width:100%; background:var(--card-2); border:1px solid var(--border); border-radius:10px; padding:10px 12px; color:var(--text); font-family:'DM Sans', sans-serif; font-size:13px; min-height:48px; resize:vertical; margin-bottom:12px;"></textarea>
-      <button class="btn-gold" style="width:100%; padding:11px; border-radius:10px; font-weight:700; font-size:13px;" onclick="generatePlan()" id="planGenBtn">Generate a Day's Plan</button>
-    </div>
-    <div id="planContent"></div>
-  </section>
-</div>
-
-<!-- ============ GROCERY TAB ============ -->
-<div class="tab-content" id="tab-grocery">
-  <section>
-    <div class="section-label">Quick Scan</div>
-    <div class="section-caption">Snap a shelf item while you're shopping — quick color rating, saved to your last 20 scans.</div>
-    <div class="tap-btn photo wide" onclick="triggerScan()">
-      <div class="ic">📸</div><div class="lbl">Scan an Item</div>
-    </div>
-    <input type="file" id="scanInput" accept="image/*" capture="environment" style="display:none;" onchange="handleScan(event)">
-    <div id="scanAnalyzingRow"></div>
-    <div id="scanList" style="margin-top:12px;"></div>
-  </section>
-
-  <section>
-    <div class="section-label">Shopping List</div>
-    <div class="add-row">
-      <input type="text" id="groceryInput" placeholder="Add an item..." onkeydown="if(event.key==='Enter')addGroceryItem();">
-      <button onclick="addGroceryItem()">Add</button>
-    </div>
-    <div id="groceryList"></div>
-    <button class="btn-quiet" style="margin-top:8px; padding:8px 14px; border-radius:9px; font-size:11px; font-weight:600; cursor:pointer;" onclick="clearCheckedGrocery()">Clear Checked Items</button>
-  </section>
-</div>
-
-<!-- ============ SETTINGS TAB ============ -->
-<div class="tab-content" id="tab-settings">
-  <section>
-    <div class="section-label">Groq API Key</div>
-    <div class="section-caption">Used only in your browser for photo analysis and Ask My Chef. Stored on this device only. Get a free key at console.groq.com/keys.</div>
-    <div class="row-card">
-      <input type="password" id="apiKeyInput" placeholder="gsk_..." style="width:100%; background:var(--card-2); border:1px solid var(--border); border-radius:10px; padding:11px 12px; color:var(--text); font-family:'DM Mono', monospace; font-size:13px; margin-bottom:10px;">
-      <button class="btn-gold" style="width:100%; padding:10px; border-radius:9px; font-weight:700; font-size:13px; cursor:pointer;" onclick="saveApiKey()">Save Key</button>
-    </div>
-  </section>
-
-  <section>
-    <div class="section-label">Backup</div>
-    <div class="section-caption">Export before you clear your browser cache. Import merges by ID — safe to run more than once.</div>
-    <div class="row-card" style="display:flex; flex-direction:column; gap:8px;">
-      <button class="btn-gold" style="padding:10px; border-radius:9px; font-weight:600; font-size:13px; cursor:pointer;" onclick="exportData()">💾 Export Backup (.json)</button>
-      <button class="btn-teal" style="padding:10px; border-radius:9px; font-weight:600; font-size:13px; cursor:pointer;" onclick="document.getElementById('importInput').click()">📂 Import Backup</button>
-      <button class="btn-quiet" style="padding:10px; border-radius:9px; font-weight:600; font-size:13px; cursor:pointer;" onclick="copyExport()">⇩ Copy Log as Text</button>
-    </div>
-    <input type="file" id="importInput" accept="application/json" style="display:none;" onchange="handleImport(event)">
-  </section>
-
-  <section>
-    <div class="section-label" style="color:var(--red);">Danger Zone</div>
-    <div id="settingsClearArea">
-      <button class="btn-danger" style="width:100%; padding:10px; border-radius:9px; font-weight:600; font-size:13px; cursor:pointer;" onclick="showConfirmClear()">Reset All App Data</button>
-    </div>
-  </section>
-</div>
-
-<footer id="quickNoteFooter">
-  <form onsubmit="handleNote(event)">
-    <input type="text" id="noteInput" placeholder="Quick note (food, symptom, mood)...">
-    <button type="submit">Log</button>
-  </form>
 </footer>
-
-<div class="bottom-nav">
-  <button class="nav-btn active" id="nav-home" onclick="switchTab('home')"><span class="nav-ic">🏠</span><span class="nav-lbl">Home</span></button>
-  <button class="nav-btn" id="nav-plan" onclick="switchTab('plan')"><span class="nav-ic">📅</span><span class="nav-lbl">Plan</span></button>
-  <button class="nav-btn" id="nav-grocery" onclick="switchTab('grocery')"><span class="nav-ic">🛒</span><span class="nav-lbl">Grocery</span></button>
-  <button class="nav-btn" id="nav-settings" onclick="switchTab('settings')"><span class="nav-ic">⚙</span><span class="nav-lbl">Settings</span></button>
-</div>
-
-<script>
-/* ============ STATE ============ */
-let logs = JSON.parse(localStorage.getItem('lazlog_data') || '[]');
-let groceryItems = JSON.parse(localStorage.getItem('lazlog_grocery') || '[]');
-let quickScans = JSON.parse(localStorage.getItem('lazlog_scans') || '[]');
-let mealPlan = JSON.parse(localStorage.getItem('lazlog_mealplan') || 'null');
-let selectedDate = toISODate(new Date());
-let currentTab = 'home';
-
-function toISODate(d){
-  const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
-  return y + '-' + m + '-' + day;
-}
-function todayISO(){ return toISODate(new Date()); }
-
-function save(){ localStorage.setItem('lazlog_data', JSON.stringify(logs)); }
-function saveGrocery(){ localStorage.setItem('lazlog_grocery', JSON.stringify(groceryItems)); }
-function saveScans(){ localStorage.setItem('lazlog_scans', JSON.stringify(quickScans)); }
-function savePlan(){ localStorage.setItem('lazlog_mealplan', JSON.stringify(mealPlan)); }
-
-function toast(msg){
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(function(){ t.classList.remove('show'); }, 1400);
-}
-
-/* ============ TAB NAV ============ */
-function switchTab(tab){
-  currentTab = tab;
-  ['home','plan','grocery','settings'].forEach(function(t){
-    document.getElementById('tab-'+t).classList.toggle('active', t === tab);
-    document.getElementById('nav-'+t).classList.toggle('active', t === tab);
-  });
-  document.getElementById('quickNoteFooter').style.display = (tab === 'home') ? 'flex' : 'none';
-  if(tab === 'grocery'){ renderGrocery(); renderScans(); }
-  if(tab === 'plan'){ renderPlan(); }
-  if(tab === 'settings'){ document.getElementById('apiKeyInput').value = localStorage.getItem('lazlog_groq_key') || ''; }
-}
-
-function goToSettingsForKey(){
-  switchTab('settings');
-  toast('Add your Groq API key below');
-  setTimeout(function(){ document.getElementById('apiKeyInput').focus(); }, 150);
-}
-
-/* ============ HOME: LOGGING ============ */
-function addLog(type, value, meta){
-  const now = new Date();
-  const entry = { id: Date.now(), date: todayISO(), timestamp: now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), type: type, value: value };
-  if(meta) entry.meta = meta;
-  logs.unshift(entry);
-  save();
-  render();
-}
-
-function quickLog(type, value){ addLog(type, value); toast(value); }
-
-function handleNote(e){
-  e.preventDefault();
-  const input = document.getElementById('noteInput');
-  if(!input.value.trim()) return;
-  addLog('Note', input.value.trim());
-  input.value = '';
-}
-
-function logWeight(){
-  const input = document.getElementById('weightInput');
-  const val = parseFloat(input.value);
-  if(!val || val <= 0) return;
-  addLog('Weight', val + ' lbs');
-  input.value = '';
-  toast('Weight logged');
-}
-
-function setFeel(feel){ addLog('Feeling', feel); toast('Feeling: ' + feel); }
-
-function deleteLog(id){
-  logs = logs.filter(function(l){ return l.id !== id; });
-  save();
-  render();
-  toast('Log deleted');
-}
-
-/* ============ DAY NAV ============ */
-function shiftDay(delta){
-  const parts = selectedDate.split('-').map(Number);
-  const dt = new Date(parts[0], parts[1]-1, parts[2]);
-  dt.setDate(dt.getDate() + delta);
-  const iso = toISODate(dt);
-  if(iso > todayISO()) return;
-  selectedDate = iso;
-  render();
-}
-function jumpToDay(iso){
-  if(iso > todayISO()) return;
-  selectedDate = iso;
-  render();
-}
-function getSelectedLogs(){ return logs.filter(function(l){ return l.date === selectedDate; }); }
-function updateDayLabel(){
-  const parts = selectedDate.split('-').map(Number);
-  const dt = new Date(parts[0], parts[1]-1, parts[2]);
-  const label = dt.toLocaleDateString([], {weekday:'short', month:'short', day:'numeric'});
-  const isToday = selectedDate === todayISO();
-  document.getElementById('dayLabel').innerHTML = label + (isToday ? '<span class="today-tag">TODAY</span>' : '');
-  document.getElementById('nextDayBtn').disabled = isToday;
-  document.getElementById('verdictLabel').textContent = isToday ? "Today's Verdict" : label + ' — Verdict';
-  document.getElementById('timelineLabel').textContent = isToday ? "Today's Timeline" : label + ' — Timeline';
-}
-
-/* ============ COLOR SCORING ============ */
-function getLogColor(log){
-  if((log.type === 'Meal Photo' || log.type === 'Meal') && log.meta && log.meta.rating) return log.meta.rating;
-  const map = { Water:'green', Coffee:'yellow', Smoked:'red', Junk:'red' };
-  return map[log.type] || null;
-}
-function colorHex(color){
-  return { green:'var(--c-green)', yellow:'var(--c-yellow)', orange:'var(--c-orange)', red:'var(--c-red)' }[color] || 'var(--c-neutral)';
-}
-function colorPoints(color){ return { green:2, yellow:0, orange:-1, red:-2 }[color] || 0; }
-
-function digestionBadge(digestion){
-  if(!digestion || !digestion.rating) return '';
-  const map = { easy: { color:'green', emoji:'🍽️', label:'EASY DIGESTION' }, moderate: { color:'yellow', emoji:'🍽️', label:'MODERATE DIGESTION' }, hard: { color:'red', emoji:'🍽️', label:'HARD TO DIGEST' } };
-  const d = map[digestion.rating] || map.moderate;
-  const hex = colorHex(d.color);
-  return '<span class="ask-badge" style="background:color-mix(in srgb, ' + hex + ' 18%, transparent); color:' + hex + '; margin-left:6px;">' + d.emoji + ' ' + d.label + '</span>' +
-    (digestion.note ? '<div style="font-size:11.5px; color:var(--text-dim); margin:-4px 0 10px;">' + digestion.note + '</div>' : '');
-}
-
-function computeDayBadge(dayLogs){
-  let score = 0, counted = 0;
-  dayLogs.forEach(function(l){ const c = getLogColor(l); if(c){ score += colorPoints(c); counted++; } });
-  if(counted === 0) return { emoji:'⚪', label:'NO DATA YET', color:'var(--c-neutral)' };
-  if(score >= 5) return { emoji:'🟢', label:'WIN', color:'var(--c-green)' };
-  if(score >= 1) return { emoji:'🟡', label:'MIXED', color:'var(--c-yellow)' };
-  if(score >= -4) return { emoji:'🟠', label:'SLIPPING', color:'var(--c-orange)' };
-  return { emoji:'🔴', label:'SCREWUP', color:'var(--c-red)' };
-}
-
-function renderTrendStrip(){
-  const el = document.getElementById('trendStrip');
-  const today = todayISO();
-  let html = '';
-  for(let i = 6; i >= 0; i--){
-    const d = new Date();
-    d.setDate(d.getDate() - i);
-    const iso = toISODate(d);
-    const dayLogs = logs.filter(function(l){ return l.date === iso; });
-    const badge = computeDayBadge(dayLogs);
-    const isSelected = iso === selectedDate;
-    const dayLabel = d.toLocaleDateString([], { weekday: 'narrow' });
-    html += '<div class="trend-dot-wrap" onclick="jumpToDay(\'' + iso + '\')">' +
-      '<div class="trend-dot" style="background:' + badge.color + '; opacity:' + (isSelected ? '1' : '0.55') + '; box-shadow:' + (isSelected ? '0 0 0 2px var(--gold)' : 'none') + ';" title="' + iso + ': ' + badge.label + '"></div>' +
-      '<div class="trend-daylabel">' + (iso === today ? '•' : dayLabel) + '</div></div>';
-  }
-  el.innerHTML = html;
-}
-
-function renderWeightSparkline(){
-  const container = document.getElementById('weightSparkline');
-  if(!container) return;
-  const weightLogs = logs.filter(function(l){ return l.type === 'Weight'; }).slice(0, 15).reverse();
-  if(weightLogs.length < 2){ container.innerHTML = ''; return; }
-  const values = weightLogs.map(function(l){ return parseFloat(l.value); }).filter(function(v){ return !isNaN(v); });
-  if(values.length < 2){ container.innerHTML = ''; return; }
-  const min = Math.min.apply(null, values), max = Math.max.apply(null, values);
-  const range = (max - min) || 1;
-  const w = 260, h = 36, pad = 4;
-  const points = values.map(function(v, i){
-    const x = pad + (i / (values.length - 1)) * (w - 2 * pad);
-    const y = h - pad - ((v - min) / range) * (h - 2 * pad);
-    return x + ',' + y;
-  }).join(' ');
-  container.innerHTML =
-    '<svg width="100%" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none" style="display:block; margin-top:8px;">' +
-    '<polyline points="' + points + '" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>' +
-    '</svg>' +
-    '<div style="font-size:10px; color:var(--text-dim); margin-top:4px;">Last ' + values.length + ' entries · low ' + min + ' · high ' + max + '</div>';
-}
-
-function computeVerdict(dayLogs){
-  function count(t){ return dayLogs.filter(function(l){ return l.type === t; }).length; }
-  const smoke = count('Smoked'), junk = count('Junk'), water = count('Water');
-  if(dayLogs.length === 0){
-    return selectedDate === todayISO() ? "Empty board. Log something — coffee, water, whatever's true right now." : "Nothing logged this day.";
-  }
-  const score = water*1 - smoke*2 - junk*1;
-  if(score >= 5) return 'Clean day. ' + water + ' waters, zero excuses. Keep this exact energy.';
-  if(score >= 2) return 'Solid day. A little junk (' + junk + ') but mostly on track — ' + water + ' waters logged.';
-  if(score >= -2) return 'Middle of the road. ' + smoke + ' smokes, ' + junk + ' junk hits — nothing catastrophic, but you know you can do better than "fine."';
-  if(score >= -6) return 'Rough one. ' + smoke + ' smokes and ' + junk + ' junk meals is a lot for one day. Next day is a clean reset — take it.';
-  return 'That was a wreck of a day — ' + smoke + ' smokes, ' + junk + ' junk meals, not going to pretend otherwise. Doesn\'t erase a good day before or after it. Get up and log a better one.';
-}
-
-/* ============ HOME RENDER ============ */
-function render(){
-  updateDayLabel();
-  renderTrendStrip();
-  const dayLogs = getSelectedLogs();
-
-  const badge = computeDayBadge(dayLogs);
-  const badgeEl = document.getElementById('dayBadge');
-  badgeEl.style.background = 'color-mix(in srgb, ' + badge.color + ' 18%, transparent)';
-  badgeEl.style.color = badge.color;
-  badgeEl.querySelector('.dot').style.background = badge.color;
-  document.getElementById('dayBadgeText').textContent = badge.emoji + ' ' + badge.label;
-
-  ['Coffee','Water','Smoked','Junk'].forEach(function(type){
-    const el = document.getElementById('cnt-'+type);
-    if(el) el.textContent = dayLogs.filter(function(l){ return l.type===type; }).length;
-  });
-
-  document.getElementById('verdictText').textContent = computeVerdict(dayLogs);
-
-  const weightLogs = logs.filter(function(l){ return l.type==='Weight'; });
-  document.getElementById('weightLatest').innerHTML = weightLogs.length
-    ? 'Latest: <span>' + weightLogs[0].value + '</span> — logged ' + weightLogs[0].date
-    : 'No weight logged yet.';
-  renderWeightSparkline();
-
-  const feelLogs = dayLogs.filter(function(l){ return l.type==='Feeling'; });
-  document.querySelectorAll('.feel-btn').forEach(function(btn){
-    btn.classList.toggle('active', feelLogs.length > 0 && feelLogs[0].value === btn.dataset.feel);
-  });
-
-  const tl = document.getElementById('timeline');
-  tl.innerHTML = dayLogs.length === 0
-    ? '<div class="empty-note">No logs captured this day.</div>'
-    : dayLogs.map(function(l){
-        const c = getLogColor(l);
-        const dot = c ? '<span class="log-dot" style="background:' + colorHex(c) + '"></span>' : '<span class="log-dot" style="background:transparent"></span>';
-        return '<div class="log-item"><div class="log-body">' + dot + '<span class="log-time">' + l.timestamp + '</span><span><span class="log-tag">[' + l.type + ']</span>' + l.value + '</span></div><button class="log-del" onclick="deleteLog(' + l.id + ')" title="Delete">✕</button></div>';
-      }).join('');
-}
-
-/* ============ BACKUP ============ */
-function exportData(){
-  const payload = { exportedAt: new Date().toISOString(), logs: logs, groceryItems: groceryItems, quickScans: quickScans, mealPlan: mealPlan };
-  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'lazlog-backup-' + todayISO() + '.json';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-  toast('Backup exported');
-}
-
-function handleImport(event){
-  const file = event.target.files[0];
-  event.target.value = '';
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = function(e){
-    try{
-      const parsed = JSON.parse(e.target.result);
-      const incomingLogs = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.logs) ? parsed.logs : null);
-      if(!incomingLogs) throw new Error('File does not look like a LazLog backup');
-      const existingIds = {};
-      logs.forEach(function(l){ existingIds[l.id] = true; });
-      let added = 0;
-      incomingLogs.forEach(function(l){
-        if(l && l.id && !existingIds[l.id]){ logs.push(l); existingIds[l.id] = true; added++; }
-      });
-      logs.sort(function(a,b){ return b.id - a.id; });
-      save();
-
-      if(Array.isArray(parsed.groceryItems)){
-        const existingGIds = {};
-        groceryItems.forEach(function(g){ existingGIds[g.id] = true; });
-        parsed.groceryItems.forEach(function(g){ if(g && g.id && !existingGIds[g.id]){ groceryItems.push(g); existingGIds[g.id] = true; } });
-        saveGrocery();
-      }
-      if(Array.isArray(parsed.quickScans)){
-        const existingSIds = {};
-        quickScans.forEach(function(s){ existingSIds[s.id] = true; });
-        parsed.quickScans.forEach(function(s){ if(s && s.id && !existingSIds[s.id]){ quickScans.push(s); existingSIds[s.id] = true; } });
-        quickScans.sort(function(a,b){ return b.id - a.id; });
-        quickScans = quickScans.slice(0, 20);
-        saveScans();
-      }
-
-      render();
-      toast('Imported ' + added + ' log' + (added === 1 ? '' : 's'));
-    } catch(err){
-      console.error('LAZLOG import error:', err);
-      toast('Import failed — invalid backup file');
-    }
-  };
-  reader.readAsText(file);
-}
-
-function copyExport(){
-  const md = logs.map(function(l){ return '[' + l.date + ' ' + l.timestamp + '] (' + l.type + ') ' + l.value; }).join('\n');
-  if(navigator.clipboard){
-    navigator.clipboard.writeText(md).then(function(){ toast('Copied to clipboard'); }).catch(function(){ toast('Copy failed'); });
-  } else { toast('Clipboard unavailable'); }
-}
-
-function showConfirmClear(){
-  document.getElementById('settingsClearArea').innerHTML =
-    '<div class="confirm-bar"><span>Reset ALL app data — logs, plan, grocery, scans? This can\'t be undone.</span>' +
-    '<div class="btns"><button class="btn-danger" onclick="clearAllData()">Reset</button><button class="btn-quiet" onclick="hideConfirmClear()">Cancel</button></div></div>';
-}
-function hideConfirmClear(){
-  document.getElementById('settingsClearArea').innerHTML =
-    '<button class="btn-danger" style="width:100%; padding:10px; border-radius:9px; font-weight:600; font-size:13px; cursor:pointer;" onclick="showConfirmClear()">Reset All App Data</button>';
-}
-function clearAllData(){
-  logs = []; groceryItems = []; quickScans = []; mealPlan = null;
-  save(); saveGrocery(); saveScans(); savePlan();
-  hideConfirmClear();
-  render(); renderGrocery(); renderScans(); renderPlan();
-  toast('All app data reset');
-}
-
-/* ============ SETTINGS: API KEY ============ */
-function saveApiKey(){
-  const key = document.getElementById('apiKeyInput').value.trim();
-  if(key) localStorage.setItem('lazlog_groq_key', key);
-  else localStorage.removeItem('lazlog_groq_key');
-  toast(key ? 'API key saved' : 'API key cleared');
-}
-
-/* ============ PHOTO -> NUTRITION ============ */
-function triggerPhoto(){
-  const key = localStorage.getItem('lazlog_groq_key');
-  if(!key){ toast('Add your Groq API key first'); goToSettingsForKey(); return; }
-  document.getElementById('photoInput').click();
-}
-
-function compressImage(file, maxDim){
-  return new Promise(function(resolve, reject){
-    const img = new Image();
-    const reader = new FileReader();
-    reader.onload = function(e){ img.src = e.target.result; };
-    reader.onerror = reject;
-    img.onload = function(){
-      let width = img.width, height = img.height;
-      if(width > height && width > maxDim){ height = Math.round(height * maxDim / width); width = maxDim; }
-      else if(height > maxDim){ width = Math.round(width * maxDim / height); height = maxDim; }
-      const canvas = document.createElement('canvas');
-      canvas.width = width; canvas.height = height;
-      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-      resolve(canvas.toDataURL('image/jpeg', 0.7));
-    };
-    img.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
-
-async function callGroqVision(dataUrl, prompt, maxTokens){
-  const key = localStorage.getItem('lazlog_groq_key');
-  const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
-    body: JSON.stringify({
-      model: 'qwen/qwen3.6-27b',
-      messages: [{ role: 'user', content: [{ type: 'text', text: prompt }, { type: 'image_url', image_url: { url: dataUrl } }] }],
-      temperature: 0.3,
-      max_completion_tokens: maxTokens,
-      reasoning_effort: 'none',
-      reasoning_format: 'hidden',
-      response_format: { type: 'json_object' }
-    })
-  });
-  if(!resp.ok){
-    const errText = await resp.text().catch(function(){ return ''; });
-    throw new Error('API error ' + resp.status + (errText ? ': ' + errText.slice(0,150) : ''));
-  }
-  const data = await resp.json();
-  const raw = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
-  console.log('LAZLOG Groq raw response:', raw);
-  const cleaned = raw.replace(/```json/gi, '').replace(/```/g, '').trim();
-  return JSON.parse(cleaned);
-}
-
-function macroSpan(value, quality){
-  const c = colorHex(quality === 'good' ? 'green' : quality === 'bad' ? 'red' : 'yellow');
-  return '<span style="color:' + c + '; font-weight:600;">' + value + '</span>';
-}
-
-async function handlePhoto(event){
-  const file = event.target.files[0];
-  event.target.value = '';
-  if(!file) return;
-  const key = localStorage.getItem('lazlog_groq_key');
-  if(!key){ toast('Add your Groq API key first'); goToSettingsForKey(); return; }
-
-  const row = document.getElementById('analyzingRow');
-  row.innerHTML = '<div class="analyzing"><div class="spinner"></div>Analyzing photo...</div>';
-
-  try{
-    const dataUrl = await compressImage(file, 800);
-    const prompt = 'You are a nutrition estimator for a personal diet log aimed at someone who does not understand nutrition numbers. Identify the food or drink in this photo. Give an approximate nutrition estimate for the visible portion, rate it as a dietary choice using a traffic-light system ("green"=whole/minimally processed and good, "yellow"=moderate/fine in normal portions, "orange"=processed/heavy caution, "red"=poor choice - fried/sugary/very processed), rate the quality of each macro individually ("good", "neutral", or "bad" — e.g. fiber-rich complex carbs = good, refined sugar = bad; lean protein = good; unsaturated fat = good, heavily fried/trans fat = bad), AND separately assess how easy this food is to digest (fat content, fiber, spice, dairy, fried/greasy prep, portion size, common irritants). Respond ONLY with valid JSON in this exact shape, no other text: {"food":"short name","calories":number,"protein_g":number,"carbs_g":number,"fat_g":number,"confidence":"low"|"medium"|"high","rating":"green"|"yellow"|"orange"|"red","reason":"3-6 word reason for the rating","macro_quality":{"protein":"good"|"neutral"|"bad","carbs":"good"|"neutral"|"bad","fat":"good"|"neutral"|"bad"},"digestion":{"rating":"easy"|"moderate"|"hard","note":"one short plain-language reason"}}';
-
-    const nutrition = await callGroqVision(dataUrl, prompt, 400);
-    if(nutrition.calories === undefined && nutrition.food === undefined){
-      throw new Error('Model response missing expected fields');
-    }
-
-    const cal = Math.round(nutrition.calories || 0);
-    const p = Math.round(nutrition.protein_g || 0);
-    const c = Math.round(nutrition.carbs_g || 0);
-    const f = Math.round(nutrition.fat_g || 0);
-    const foodName = nutrition.food || 'Unidentified food';
-    const rating = ['green','yellow','orange','red'].includes(nutrition.rating) ? nutrition.rating : 'yellow';
-    const reason = nutrition.reason || '';
-    const mq = nutrition.macro_quality || {};
-    const dotEmoji = { green: '🟢', yellow: '🟡', orange: '🟠', red: '🔴' }[rating];
-
-    const macroStr = 'P' + macroSpan(p, mq.protein) + '/C' + macroSpan(c, mq.carbs) + '/F' + macroSpan(f, mq.fat) + 'g';
-    const dig = nutrition.digestion || {};
-    const digTag = dig.rating ? ' | 🍽️ ' + dig.rating + (dig.note ? ' (' + dig.note + ')' : '') : '';
-    const summary = dotEmoji + ' ' + foodName + ' — ~' + cal + ' kcal (' + macroStr + ')' + (reason ? ' — ' + reason : '') + digTag;
-    addLog('Meal Photo', summary, nutrition);
-    toast(dotEmoji + ' Logged: ' + foodName);
-  } catch(err){
-    console.error('LAZLOG photo analysis error:', err);
-    toast('Analysis failed — check browser console for details');
-    addLog('Meal Photo', 'Photo logged (estimate failed — check console/API key)');
-  } finally {
-    row.innerHTML = '';
-  }
-}
-
-/* ============ ASK MY CHEF ============ */
-let lastAskResult = null;
-let lastAskAlts = [];
-let askMessages = [];
-let askThread = [];
-
-const ASK_SYSTEM_PROMPT = 'You are a friendly, direct personal nutritionist and home chef helping someone refine a meal idea through conversation. They do not understand nutrition jargon, so keep language plain and simple. The conversation may involve them adjusting or refining their idea across multiple messages (swapping ingredients, changing cooking method, asking "what if" questions) — always evaluate the CURRENT full state of what they are describing, using the whole conversation for context. Beyond healthiness, ALWAYS also assess how easy the food is to digest (things like fat content, fiber, spice level, dairy, fried/greasy prep, portion size, common irritants) — this matters to them as much as nutrition does. For every message, respond ONLY with valid JSON in this exact shape, no other text: {"dish":"short name of the current meal idea","rating":"green"|"yellow"|"orange"|"red","verdict":"one direct sentence","details":"2-3 sentence plain-language explanation","digestion":{"rating":"easy"|"moderate"|"hard","note":"one short plain-language reason, e.g. high fat and fried, or light and easy on the gut"},"alternatives":[{"name":"short alt idea","rating":"green"|"yellow"|"orange"|"red","reason":"one short plain-language sentence on why this specific swap is healthier and/or easier to digest"},{"name":"short alt idea","rating":"...","reason":"..."},{"name":"short alt idea","rating":"...","reason":"..."}]}';
-
-function openAskModal(){
-  const key = localStorage.getItem('lazlog_groq_key');
-  if(!key){ toast('Add your Groq API key first'); goToSettingsForKey(); return; }
-  const input = document.getElementById('askInput');
-  input.value = '';
-  input.placeholder = 'e.g. cottage cheese with granola and honey, or frying up some chicken tenders...';
-  document.getElementById('askResult').innerHTML = '';
-  askMessages = [{ role: 'system', content: ASK_SYSTEM_PROMPT }];
-  askThread = [];
-  lastAskResult = null;
-  lastAskAlts = [];
-  renderAskThread();
-  renderAskButtons();
-  document.getElementById('askModal').classList.add('show');
-}
-function closeAskModal(){ document.getElementById('askModal').classList.remove('show'); }
-
-function renderAskThread(){
-  const el = document.getElementById('askThread');
-  el.innerHTML = askThread.map(function(m){
-    if(m.role === 'user') return '<div class="ask-msg-user">' + m.text + '</div>';
-    const dotEmoji = { green: '🟢', yellow: '🟡', orange: '🟠', red: '🔴' }[m.rating] || '⚪';
-    return '<div class="ask-msg-ai"><span>' + dotEmoji + '</span><span>' + m.text + '</span></div>';
-  }).join('');
-  el.scrollTop = el.scrollHeight;
-}
-
-function renderAskButtons(loading){
-  let html = '<button class="btn-quiet" onclick="closeAskModal()">Close</button>';
-  if(lastAskResult && !loading){
-    html += '<button class="btn-teal" onclick="logAskResult()">Log It</button>';
-  }
-  html += '<button class="btn-gold" onclick="submitAsk()" id="askSubmitBtn"' + (loading ? ' disabled' : '') + '>' + (lastAskResult ? 'Refine' : 'Ask') + '</button>';
-  document.getElementById('askBtns').innerHTML = html;
-}
-
-async function submitAsk(){
-  const input = document.getElementById('askInput');
-  const q = input.value.trim();
-  if(!q){
-    toast(lastAskResult ? 'Type your refinement first' : 'Type something first');
-    input.focus();
-    return;
-  }
-  const key = localStorage.getItem('lazlog_groq_key');
-  if(!key){ toast('Add your Groq API key first'); goToSettingsForKey(); return; }
-
-  askMessages.push({ role: 'user', content: q });
-  askThread.push({ role: 'user', text: q });
-  input.value = '';
-  renderAskThread();
-
-  const resultEl = document.getElementById('askResult');
-  resultEl.innerHTML = '<div class="analyzing"><div class="spinner"></div>Thinking it through...</div>';
-  renderAskButtons(true);
-
-  try{
-    const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
-      body: JSON.stringify({
-        model: 'qwen/qwen3.6-27b',
-        messages: askMessages,
-        temperature: 0.5,
-        max_completion_tokens: 500,
-        reasoning_effort: 'none',
-        reasoning_format: 'hidden',
-        response_format: { type: 'json_object' }
-      })
-    });
-    if(!resp.ok){
-      const errText = await resp.text().catch(function(){ return ''; });
-      throw new Error('API error ' + resp.status + (errText ? ': ' + errText.slice(0,150) : ''));
-    }
-    const data = await resp.json();
-    const raw = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
-    console.log('LAZLOG Ask My Chef raw response:', raw);
-    const cleaned = raw.replace(/```json/gi, '').replace(/```/g, '').trim();
-    const result = JSON.parse(cleaned);
-    if(!result.verdict && !result.dish){ throw new Error('Model response missing expected fields: ' + cleaned.slice(0,150)); }
-
-    askMessages.push({ role: 'assistant', content: cleaned });
-
-    const rating = ['green','yellow','orange','red'].includes(result.rating) ? result.rating : 'yellow';
-    const dotEmoji = { green: '🟢', yellow: '🟡', orange: '🟠', red: '🔴' }[rating];
-    const alts = Array.isArray(result.alternatives) ? result.alternatives : [];
-
-    lastAskResult = { dish: result.dish || q, rating: rating, verdict: result.verdict || '', digestion: result.digestion || null };
-    lastAskAlts = alts;
-    askThread.push({ role: 'assistant', rating: rating, text: (result.verdict || '') });
-    renderAskThread();
-
-    resultEl.innerHTML =
-      '<span class="ask-badge" style="background:color-mix(in srgb, ' + colorHex(rating) + ' 18%, transparent); color:' + colorHex(rating) + ';">' + dotEmoji + ' ' + rating.toUpperCase() + '</span>' +
-      digestionBadge(result.digestion) +
-      '<div class="ask-dish">' + (result.dish || q) + '</div>' +
-      '<div class="ask-verdict">' + (result.verdict || '') + '</div>' +
-      '<div class="ask-details">' + (result.details || '') + '</div>' +
-      (alts.length ? '<div class="ask-alts-label">Healthier Alternatives (tap for why)</div><ul class="ask-alts">' + alts.map(function(a, i){
-        const isObj = a && typeof a === 'object';
-        const name = isObj ? (a.name || 'Alternative') : a;
-        const reason = isObj ? (a.reason || '') : '';
-        return '<li class="ask-alt-item" onclick="this.classList.toggle(\'open\')">' +
-          '<div class="ask-alt-head"><span>' + name + '</span>' + (reason ? '<span class="ask-alt-chev">▾</span>' : '') + '</div>' +
-          (reason ? '<div class="ask-alt-reason">' + reason +
-            '<div class="ask-alt-actions"><button onclick="event.stopPropagation(); logAltByIndex(' + i + ')">Log This</button><button onclick="event.stopPropagation(); discussAltByIndex(' + i + ')">Discuss This</button></div>' +
-            '</div>' : '') + '</li>';
-      }).join('') + '</ul>' : '');
-
-    input.placeholder = 'Refine it — e.g. "what if I bake it instead" or "swap the honey for..."';
-    renderAskButtons(false);
-  } catch(err){
-    console.error('LAZLOG Ask My Chef error:', err);
-    resultEl.innerHTML = '<div class="empty-note">Couldn\'t get an answer — check the browser console for details, or try rephrasing.</div>';
-    renderAskButtons(false);
-  }
-}
-
-function logAskResult(){
-  if(!lastAskResult) return;
-  const dotEmoji = { green: '🟢', yellow: '🟡', orange: '🟠', red: '🔴' }[lastAskResult.rating];
-  const digTag = (lastAskResult.digestion && lastAskResult.digestion.rating) ? ' | 🍽️ ' + lastAskResult.digestion.rating : '';
-  addLog('Meal', dotEmoji + ' ' + lastAskResult.dish + ' — ' + lastAskResult.verdict + digTag, { rating: lastAskResult.rating, digestion: lastAskResult.digestion });
-  toast('Logged: ' + lastAskResult.dish);
-  closeAskModal();
-}
-
-function logAltByIndex(i){
-  const a = lastAskAlts[i];
-  if(!a) return;
-  const isObj = a && typeof a === 'object';
-  const name = isObj ? (a.name || 'Alternative') : a;
-  const reason = isObj ? (a.reason || '') : '';
-  const rating = (isObj && ['green','yellow','orange','red'].includes(a.rating)) ? a.rating : 'green';
-  const dotEmoji = { green: '🟢', yellow: '🟡', orange: '🟠', red: '🔴' }[rating];
-  addLog('Meal', dotEmoji + ' ' + name + (reason ? ' — ' + reason : ''), { rating: rating });
-  toast('Logged: ' + name);
-}
-
-function discussAltByIndex(i){
-  const a = lastAskAlts[i];
-  if(!a) return;
-  const name = (a && typeof a === 'object') ? (a.name || 'that alternative') : a;
-  document.getElementById('askInput').value = 'Let\'s go with ' + name + ' instead — re-evaluate that.';
-  submitAsk();
-}
-
-/* ============ MEAL PLAN ============ */
-let planLoadingIndex = -1;
-
-function savePantry(){
-  localStorage.setItem('lazlog_pantry', document.getElementById('pantryInput').value.trim());
-}
-function loadPantry(){
-  document.getElementById('pantryInput').value = localStorage.getItem('lazlog_pantry') || '';
-}
-
-async function generatePlan(){
-  const key = localStorage.getItem('lazlog_groq_key');
-  if(!key){ toast('Add your Groq API key first'); goToSettingsForKey(); return; }
-  savePantry();
-  const pantry = document.getElementById('pantryInput').value.trim();
-  const btn = document.getElementById('planGenBtn');
-  btn.disabled = true;
-  document.getElementById('planContent').innerHTML = '<div class="analyzing"><div class="spinner"></div>Building your day...</div>';
-
-  try{
-    const pantryLine = pantry ? ' The user has these ingredients on hand and would like the plan to make good use of them where reasonable, though a few extra items are fine: ' + pantry + '.' : '';
-    const prompt = 'You are a home chef and nutritionist planning meals for someone who wants simple, realistic, healthy food they will actually cook — not fancy recipes. Plan ONE day: Breakfast, Lunch, Dinner, and one Snack. For each give a short realistic idea (what to make/eat, not a full recipe) and rate it green/yellow/orange/red.' + pantryLine + ' Then compile a consolidated shopping list of every ingredient needed across all meals that the user does NOT already have on hand, deduplicated, each tagged with a rough category (Produce, Protein, Dairy, Pantry, Frozen, Other). Respond ONLY with valid JSON in this exact shape, no other text: {"meals":[{"slot":"Breakfast","idea":"...","rating":"green"},{"slot":"Lunch","idea":"...","rating":"..."},{"slot":"Dinner","idea":"...","rating":"..."},{"slot":"Snack","idea":"...","rating":"..."}],"shopping_list":[{"item":"...","category":"Produce"}]}';
-
-    const result = await callGroqText(prompt, 900);
-    if(!Array.isArray(result.meals)){ throw new Error('Model response missing meals array'); }
-
-    mealPlan = { generatedAt: new Date().toISOString(), meals: result.meals, shopping_list: Array.isArray(result.shopping_list) ? result.shopping_list : [], shoppingStale: false };
-    savePlan();
-    renderPlan();
-    toast('Plan generated');
-  } catch(err){
-    console.error('LAZLOG plan error:', err);
-    document.getElementById('planContent').innerHTML = '<div class="empty-note">Couldn\'t generate a plan — check the browser console, or try again.</div>';
-    toast('Plan generation failed');
-  } finally {
-    btn.disabled = false;
-  }
-}
-
-async function callGroqText(prompt, maxTokens){
-  const key = localStorage.getItem('lazlog_groq_key');
-  const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
-    body: JSON.stringify({
-      model: 'qwen/qwen3.6-27b',
-      messages: [{ role: 'user', content: prompt }],
-      temperature: 0.6,
-      max_completion_tokens: maxTokens,
-      reasoning_effort: 'none',
-      reasoning_format: 'hidden',
-      response_format: { type: 'json_object' }
-    })
-  });
-  if(!resp.ok){
-    const errText = await resp.text().catch(function(){ return ''; });
-    throw new Error('API error ' + resp.status + (errText ? ': ' + errText.slice(0,150) : ''));
-  }
-  const data = await resp.json();
-  const raw = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
-  console.log('LAZLOG Plan raw response:', raw);
-  const cleaned = raw.replace(/```json/gi, '').replace(/```/g, '').trim();
-  return JSON.parse(cleaned);
-}
-
-async function regenerateMeal(index){
-  if(!mealPlan || !mealPlan.meals[index]) return;
-  const key = localStorage.getItem('lazlog_groq_key');
-  if(!key){ toast('Add your Groq API key first'); goToSettingsForKey(); return; }
-
-  const slot = mealPlan.meals[index].slot;
-  const pantry = document.getElementById('pantryInput').value.trim();
-  const others = mealPlan.meals.filter(function(m, i){ return i !== index; }).map(function(m){ return m.slot + ': ' + m.idea; }).join('; ');
-
-  planLoadingIndex = index;
-  renderPlan();
-
-  try{
-    const pantryLine = pantry ? ' They have these ingredients on hand and would like it to make use of them where reasonable: ' + pantry + '.' : '';
-    const prompt = 'You are a home chef planning one meal for someone who wants simple, realistic, healthy food they will actually cook. Suggest a new idea for their ' + slot + ' today. Their other meals today are already set as: ' + others + ' — keep this one different from those, don\'t repeat the same main ingredient unnecessarily.' + pantryLine + ' Respond ONLY with valid JSON, no other text: {"idea":"short realistic idea for the ' + slot + '","rating":"green"|"yellow"|"orange"|"red"}';
-
-    const result = await callGroqText(prompt, 250);
-    if(!result.idea){ throw new Error('Model response missing idea'); }
-
-    mealPlan.meals[index] = { slot: slot, idea: result.idea, rating: ['green','yellow','orange','red'].includes(result.rating) ? result.rating : 'yellow' };
-    mealPlan.shoppingStale = true;
-    savePlan();
-    toast(slot + ' updated');
-  } catch(err){
-    console.error('LAZLOG regenerate meal error:', err);
-    toast('Regeneration failed — check console');
-  } finally {
-    planLoadingIndex = -1;
-    renderPlan();
-  }
-}
-
-async function refreshShoppingList(){
-  if(!mealPlan || !mealPlan.meals) return;
-  const key = localStorage.getItem('lazlog_groq_key');
-  if(!key){ toast('Add your Groq API key first'); goToSettingsForKey(); return; }
-  const pantry = document.getElementById('pantryInput').value.trim();
-
-  const btn = document.getElementById('refreshShopBtn');
-  if(btn) btn.disabled = true;
-
-  try{
-    const mealsList = mealPlan.meals.map(function(m){ return m.slot + ': ' + m.idea; }).join('; ');
-    const pantryLine = pantry ? ' The user already has these on hand, do not include them: ' + pantry + '.' : '';
-    const prompt = 'Given this day of meals: ' + mealsList + ' — compile a consolidated shopping list of every ingredient needed, deduplicated, each tagged with a rough category (Produce, Protein, Dairy, Pantry, Frozen, Other).' + pantryLine + ' Respond ONLY with valid JSON, no other text: {"shopping_list":[{"item":"...","category":"Produce"}]}';
-
-    const result = await callGroqText(prompt, 500);
-    mealPlan.shopping_list = Array.isArray(result.shopping_list) ? result.shopping_list : [];
-    mealPlan.shoppingStale = false;
-    savePlan();
-    renderPlan();
-    toast('Shopping list refreshed');
-  } catch(err){
-    console.error('LAZLOG refresh shopping list error:', err);
-    toast('Refresh failed — check console');
-  } finally {
-    if(btn) btn.disabled = false;
-  }
-}
-
-function renderPlan(){
-  loadPantry();
-  const el = document.getElementById('planContent');
-  if(!mealPlan || !mealPlan.meals || !mealPlan.meals.length){
-    el.innerHTML = '<div class="empty-note">No plan yet — generate one above.</div>';
-    return;
-  }
-  const dotFor = { green: '🟢', yellow: '🟡', orange: '🟠', red: '🔴' };
-  let html = mealPlan.meals.map(function(m, i){
-    if(i === planLoadingIndex){
-      return '<div class="plan-meal"><div class="plan-meal-head"><span class="plan-slot">' + (m.slot || '') + '</span></div><div class="analyzing"><div class="spinner"></div>Regenerating...</div></div>';
-    }
-    const dot = dotFor[m.rating] || '⚪';
-    return '<div class="plan-meal"><div class="plan-meal-head"><span>' + dot + '</span><span class="plan-slot">' + (m.slot || '') + '</span>' +
-      '<button onclick="regenerateMeal(' + i + ')" style="margin-left:auto; background:var(--card-2); border:1px solid var(--border); color:var(--text-dim); border-radius:8px; padding:4px 10px; font-size:11px; cursor:pointer;">🔄 Try Again</button></div>' +
-      '<div class="plan-idea">' + (m.idea || '') + '</div></div>';
-  }).join('');
-
-  if(mealPlan.shoppingStale){
-    html += '<div style="font-size:11.5px; color:var(--c-orange); margin:10px 0;">Shopping list may not reflect your swapped meal(s) yet.</div>';
-  }
-
-  if(mealPlan.shopping_list && mealPlan.shopping_list.length){
-    html += '<div class="section-label" style="margin-top:16px;">Shopping List Preview</div>';
-    const grouped = {};
-    mealPlan.shopping_list.forEach(function(i){
-      const cat = i.category || 'Other';
-      if(!grouped[cat]) grouped[cat] = [];
-      grouped[cat].push(i.item);
-    });
-    Object.keys(grouped).forEach(function(cat){
-      html += '<div class="shop-cat">' + cat + '</div>';
-      grouped[cat].forEach(function(item){
-        html += '<div style="font-size:12.5px; color:var(--text-dim); padding:4px 2px;">• ' + item + '</div>';
-      });
-    });
-    html += '<button class="btn-teal" style="width:100%; padding:10px; border-radius:9px; font-weight:700; font-size:13px; cursor:pointer; margin-top:10px;" onclick="sendPlanToGrocery()">Send Shopping List to Grocery Tab</button>';
-    if(mealPlan.shoppingStale){
-      html += '<button id="refreshShopBtn" class="btn-quiet" style="width:100%; padding:9px; border-radius:9px; font-weight:600; font-size:12px; cursor:pointer; margin-top:8px;" onclick="refreshShoppingList()">Refresh Shopping List from Current Plan</button>';
-    }
-  }
-  el.innerHTML = html;
-}
-
-function sendPlanToGrocery(){
-  if(!mealPlan || !mealPlan.shopping_list) return;
-  const existingNames = {};
-  groceryItems.forEach(function(g){ existingNames[g.name.toLowerCase()] = true; });
-  let added = 0;
-  mealPlan.shopping_list.forEach(function(i){
-    const nameLower = (i.item || '').toLowerCase();
-    if(nameLower && !existingNames[nameLower]){
-      groceryItems.push({ id: Date.now() + Math.random(), name: i.item, category: i.category || 'Other', checked: false });
-      existingNames[nameLower] = true;
-      added++;
-    }
-  });
-  saveGrocery();
-  toast('Added ' + added + ' item' + (added === 1 ? '' : 's') + ' to Grocery');
-  switchTab('grocery');
-}
-
-/* ============ GROCERY LIST ============ */
-function addGroceryItem(){
-  const input = document.getElementById('groceryInput');
-  const name = input.value.trim();
-  if(!name) return;
-  groceryItems.unshift({ id: Date.now(), name: name, category: 'Other', checked: false });
-  saveGrocery();
-  input.value = '';
-  renderGrocery();
-}
-function toggleGrocery(id){
-  const item = groceryItems.find(function(g){ return g.id === id; });
-  if(item) item.checked = !item.checked;
-  saveGrocery();
-  renderGrocery();
-}
-function deleteGroceryItem(id){
-  groceryItems = groceryItems.filter(function(g){ return g.id !== id; });
-  saveGrocery();
-  renderGrocery();
-}
-function clearCheckedGrocery(){
-  groceryItems = groceryItems.filter(function(g){ return !g.checked; });
-  saveGrocery();
-  renderGrocery();
-  toast('Checked items cleared');
-}
-function renderGrocery(){
-  const el = document.getElementById('groceryList');
-  if(!groceryItems.length){
-    el.innerHTML = '<div class="empty-note">No items yet — add one above or send a plan\'s shopping list here.</div>';
-    return;
-  }
-  const sorted = groceryItems.slice().sort(function(a,b){ return (a.checked === b.checked) ? 0 : (a.checked ? 1 : -1); });
-  el.innerHTML = sorted.map(function(g){
-    return '<div class="shop-item' + (g.checked ? ' checked' : '') + '" onclick="toggleGrocery(' + g.id + ')">' +
-      '<span class="shop-checkbox">' + (g.checked ? '✓' : '') + '</span>' +
-      '<span>' + g.name + '</span>' +
-      '<button class="shop-del" onclick="event.stopPropagation(); deleteGroceryItem(' + g.id + ')">✕</button></div>';
-  }).join('');
-}
-
-/* ============ QUICK SCAN ============ */
-function triggerScan(){
-  const key = localStorage.getItem('lazlog_groq_key');
-  if(!key){ toast('Add your Groq API key first'); goToSettingsForKey(); return; }
-  document.getElementById('scanInput').click();
-}
-async function handleScan(event){
-  const file = event.target.files[0];
-  event.target.value = '';
-  if(!file) return;
-  const key = localStorage.getItem('lazlog_groq_key');
-  if(!key){ toast('Add your Groq API key first'); goToSettingsForKey(); return; }
-
-  const row = document.getElementById('scanAnalyzingRow');
-  row.innerHTML = '<div class="analyzing"><div class="spinner"></div>Scanning...</div>';
-
-  try{
-    const dataUrl = await compressImage(file, 700);
-    const prompt = 'Look at this photo of a grocery or food item, likely a package or shelf item. Identify what it is and rate it green/yellow/orange/red as a healthy choice. Respond ONLY with valid JSON, no other text: {"name":"short name","rating":"green"|"yellow"|"orange"|"red","reason":"3-6 word reason"}';
-    const result = await callGroqVision(dataUrl, prompt, 150);
-    const rating = ['green','yellow','orange','red'].includes(result.rating) ? result.rating : 'yellow';
-    const scan = { id: Date.now(), name: result.name || 'Unidentified item', rating: rating, reason: result.reason || '', ts: new Date().toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'}) };
-    quickScans.unshift(scan);
-    quickScans = quickScans.slice(0, 20);
-    saveScans();
-    renderScans();
-    toast('Scanned: ' + scan.name);
-  } catch(err){
-    console.error('LAZLOG scan error:', err);
-    toast('Scan failed — check browser console');
-  } finally {
-    row.innerHTML = '';
-  }
-}
-function deleteScan(id){
-  quickScans = quickScans.filter(function(s){ return s.id !== id; });
-  saveScans();
-  renderScans();
-}
-function addScanToGrocery(id){
-  const scan = quickScans.find(function(s){ return s.id === id; });
-  if(!scan) return;
-  const existingNames = {};
-  groceryItems.forEach(function(g){ existingNames[g.name.toLowerCase()] = true; });
-  if(!existingNames[scan.name.toLowerCase()]){
-    groceryItems.unshift({ id: Date.now(), name: scan.name, category: 'Other', checked: false });
-    saveGrocery();
-    toast('Added to Grocery List');
-  } else {
-    toast('Already on your list');
-  }
-}
-function renderScans(){
-  const el = document.getElementById('scanList');
-  if(!quickScans.length){
-    el.innerHTML = '<div class="empty-note">No scans yet — snap a shelf item to get a quick read.</div>';
-    return;
-  }
-  const dotFor = { green: '🟢', yellow: '🟡', orange: '🟠', red: '🔴' };
-  el.innerHTML = quickScans.map(function(s){
-    return '<div class="scan-chip"><span>' + (dotFor[s.rating] || '⚪') + '</span>' +
-      '<div class="scan-info"><div class="scan-name">' + s.name + '</div><div class="scan-reason">' + (s.reason || '') + ' · ' + s.ts + '</div></div>' +
-      '<button onclick="addScanToGrocery(' + s.id + ')">+ List</button>' +
-      '<button onclick="deleteScan(' + s.id + ')">✕</button></div>';
-  }).join('');
-}
-
-/* ============ INIT ============ */
-render();
-</script>
 </body>
 </html>
