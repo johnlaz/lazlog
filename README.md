@@ -11,10 +11,10 @@ A private, local-first diet and habit tracker. Tap to log coffee, water, smokes,
 
 - **Quick Tap logging** for coffee, water, smokes and junk food, with a daily count.
 - **Daily verdict** (WIN, MIXED, SLIPPING, SCREWUP) and a seven-day trend strip.
-- **Snap a Meal:** photo to calories, macros, a colour rating and a digestion note.
+- **Snap a Meal:** photo to calories, macros, a color rating and a digestion note.
 - **Ask My Chef:** a conversation to refine a meal idea, with healthier swaps.
 - **Meal Plan:** a day of realistic meals from what you have on hand, with a shopping list you can send to Grocery.
-- **Quick Scan:** photograph a shelf item for a quick colour rating (last 20 saved).
+- **Quick Scan:** photograph a shelf item for a quick color rating (last 20 saved).
 - **Weight and feeling** tracking with a sparkline.
 - **Backup:** one-tap Back Up and Restore (a JSON file, safe to restore more than once), plus copy-as-text.
 
@@ -73,7 +73,7 @@ Hosted on GitHub Pages from the repository root.
 - Groq model pickers with refresh on key save; saved selections are never swapped.
 - Visible version stamp tied to the service worker cache version.
 - New LAZLOG identity: ring mark, SVG icon set, verdict-tinted hero card.
-- Accessibility: pinch-zoom enabled, real buttons, labelled inputs, keyboard-operable lists, live toast, larger minimum text, reduced-motion support.
+- Accessibility: pinch-zoom enabled, real buttons, labeled inputs, keyboard-operable lists, live toast, larger minimum text, reduced-motion support.
 - Simpler Back Up / Restore wording; backup now includes the pantry list.
 - User and model text is HTML-escaped before display.
 - Removed debug logging of raw model responses.
