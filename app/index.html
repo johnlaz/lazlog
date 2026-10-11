@@ -830,7 +830,7 @@ function populateModels(){
     const sel = document.getElementById(kind === 'text' ? 'modelText' : 'modelVision');
     if(!sel) return;
     const saved = getModel(kind);
-    /* Photo picker only offers image-capable models (falls back to the full list if none are recognised). */
+    /* Photo picker only offers image-capable models (falls back to the full list if none are recognized). */
     const ids = (kind === 'vision' && visionList.length ? visionList : list).slice();
     [DEFAULT_MODEL, saved].forEach(function(m){ if(ids.indexOf(m) === -1) ids.push(m); });
     ids.sort();
