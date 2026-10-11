@@ -91,7 +91,18 @@
   .feel-btn[data-feel="Okay"].active{background:color-mix(in srgb, var(--c-yellow) 18%, transparent); border-color:var(--c-yellow); color:var(--c-yellow);}
   .feel-btn[data-feel="Rough"].active{background:color-mix(in srgb, var(--c-red) 18%, transparent); border-color:var(--c-red); color:var(--c-red);}
 
-  .timeline{max-height:220px; overflow-y:auto; display:flex; flex-direction:column; gap:6px;}
+  .timeline{max-height:380px; overflow-y:auto; display:flex; flex-direction:column; gap:6px;}
+  .meal-wrap{flex:1; min-width:0;}
+  .meal-wrap .log-tag{display:block; font-size:10.5px; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:3px;}
+  .meal-head{display:flex; justify-content:space-between; align-items:baseline; gap:10px;}
+  .meal-name{font-size:14px; font-weight:600; color:var(--text); line-height:1.3; overflow-wrap:anywhere;}
+  .meal-kcal{font-family:var(--mono); font-size:12px; color:var(--text-dim); white-space:nowrap;}
+  .macro-row{display:flex; flex-wrap:wrap; gap:6px; margin-top:7px;}
+  .macro-chip{font-size:11.5px; font-weight:600; padding:2px 9px; border-radius:12px; border:1px solid;}
+  .meal-reason{font-size:12px; color:var(--text-dim); line-height:1.4; margin-top:7px;}
+  .meal-dig{display:flex; flex-wrap:wrap; align-items:center; gap:4px 8px; margin-top:7px;}
+  .dig-badge{font-size:10.5px; font-weight:700; letter-spacing:0.5px; text-transform:uppercase; padding:2px 8px; border-radius:10px;}
+  .dig-note{font-size:11.5px; color:var(--text-dim); line-height:1.4;}
   .log-item{background:var(--card); border:1px solid var(--border); border-radius:10px; padding:9px 12px; display:flex; gap:10px; align-items:flex-start; font-size:12.5px;}
   .log-item .log-body{flex:1; display:flex; gap:10px; align-items:flex-start;}
   .log-del{background:none; border:none; color:var(--text-dim); font-size:15px; line-height:1; cursor:pointer; padding:2px 4px; flex-shrink:0; margin-top:-1px;}
@@ -475,8 +486,13 @@ let quickScans = JSON.parse(localStorage.getItem('lazlog_scans') || '[]');
 let mealPlan = JSON.parse(localStorage.getItem('lazlog_mealplan') || 'null');
 let selectedDate = toISODate(new Date());
 let currentTab = 'home';
-const APP_VERSION = '1.0.1';
-const DEFAULT_MODEL = 'qwen/qwen3.6-27b';
+const APP_VERSION = '1.0.2';
+const DEFAULT_MODEL = 'qwen/qwen3.8-27b';
+/* Groq's /models endpoint does not say which models accept images. Per Groq's vision docs the only
+   image-input model today is qwen/qwen3.8-27b; the other patterns cover the usual vision-model names
+   so a future model shows up without an app update. */
+const VISION_MODEL_RE = /qwen3\.8|llama-4|vision|[-/]vl\b|pixtral/i;
+function isVisionModel(id){ return VISION_MODEL_RE.test(id); }
 function esc(v){ return String(v == null ? '' : v).replace(/[&<>"']/g, function(c){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]; }); }
 
 function toISODate(d){
@@ -707,7 +723,11 @@ function render(){
     : dayLogs.map(function(l){
         const c = getLogColor(l);
         const dot = c ? '<span class="log-dot" style="background:' + colorHex(c) + '"></span>' : '<span class="log-dot" style="background:transparent"></span>';
-        return '<div class="log-item"><div class="log-body">' + dot + '<span class="log-time">' + l.timestamp + '</span><span><span class="log-tag">[' + esc(l.type) + ']</span>' + esc(l.value) + '</span></div><button class="log-del" onclick="deleteLog(' + l.id + ')" title="Delete" aria-label="Delete log entry">✕</button></div>';
+        const isMeal = l.type === 'Meal Photo' && l.meta && (l.meta.food !== undefined || l.meta.calories !== undefined);
+        const body = isMeal
+          ? '<div class="meal-wrap"><span class="log-tag">Meal photo</span>' + mealPhotoHTML(l.meta) + '</div>'
+          : '<span><span class="log-tag">[' + esc(l.type) + ']</span>' + esc(plainText(l.value)) + '</span>';
+        return '<div class="log-item"><div class="log-body">' + dot + '<span class="log-time">' + l.timestamp + '</span>' + body + '</div><button class="log-del" onclick="deleteLog(' + l.id + ')" title="Delete" aria-label="Delete log entry">✕</button></div>';
       }).join('');
 }
 
@@ -776,7 +796,7 @@ function handleImport(event){
 }
 
 function copyExport(){
-  const md = logs.map(function(l){ return '[' + l.date + ' ' + l.timestamp + '] (' + l.type + ') ' + l.value; }).join('\n');
+  const md = logs.map(function(l){ return '[' + l.date + ' ' + l.timestamp + '] (' + l.type + ') ' + plainText(l.value); }).join('\n');
   if(navigator.clipboard){
     navigator.clipboard.writeText(md).then(function(){ toast('Copied to clipboard'); }).catch(function(){ toast('Copy failed'); });
   } else { toast('Clipboard unavailable'); }
@@ -805,15 +825,18 @@ function cachedModels(){ try{ return JSON.parse(localStorage.getItem('lazlog_mod
 function saveModelChoice(kind, id){ localStorage.setItem('lazlog_model_' + kind, id); toast('Model saved'); }
 function populateModels(){
   const list = cachedModels();
+  const visionList = list.filter(isVisionModel);
   ['text','vision'].forEach(function(kind){
     const sel = document.getElementById(kind === 'text' ? 'modelText' : 'modelVision');
     if(!sel) return;
     const saved = getModel(kind);
-    const ids = list.slice();
+    /* Photo picker only offers image-capable models (falls back to the full list if none are recognised). */
+    const ids = (kind === 'vision' && visionList.length ? visionList : list).slice();
     [DEFAULT_MODEL, saved].forEach(function(m){ if(ids.indexOf(m) === -1) ids.push(m); });
     ids.sort();
     sel.innerHTML = ids.map(function(id){
-      const missing = list.length && list.indexOf(id) === -1;
+      const pool = (kind === 'vision' && visionList.length) ? visionList : list;
+      const missing = pool.length && pool.indexOf(id) === -1;
       return '<option value="' + esc(id) + '"' + (id === saved ? ' selected' : '') + '>' + esc(id) + (missing ? ' (not in latest list)' : '') + '</option>';
     }).join('');
   });
@@ -927,9 +950,30 @@ async function callGroqVision(dataUrl, prompt, maxTokens){
   return JSON.parse(cleaned);
 }
 
-function macroSpan(value, quality){
-  const c = colorHex(quality === 'good' ? 'green' : quality === 'bad' ? 'red' : 'yellow');
-  return '<span style="color:' + c + '; font-weight:600;">' + value + '</span>';
+/* Strip any markup from log text (older entries saved HTML spans into the text). */
+function plainText(v){ return String(v == null ? '' : v).replace(/<[^>]*>/g, ''); }
+
+function macroChip(label, grams, quality){
+  const hex = colorHex(quality === 'good' ? 'green' : quality === 'bad' ? 'red' : 'yellow');
+  return '<span class="macro-chip" style="color:' + hex + '; border-color:color-mix(in srgb, ' + hex + ' 40%, transparent); background:color-mix(in srgb, ' + hex + ' 12%, transparent);">' + label + ' ' + grams + 'g</span>';
+}
+
+/* Clean card for a photo-logged meal, built from the structured estimate. */
+function mealPhotoHTML(m){
+  const cal = Math.round(m.calories || 0), p = Math.round(m.protein_g || 0), c = Math.round(m.carbs_g || 0), f = Math.round(m.fat_g || 0);
+  const mq = m.macro_quality || {};
+  const dig = m.digestion || {};
+  const digMap = { easy:['green','Easy digestion'], moderate:['yellow','Moderate digestion'], hard:['red','Hard to digest'] };
+  let html = '<div class="meal-card">' +
+    '<div class="meal-head"><span class="meal-name">' + esc(plainText(m.food || 'Unidentified food')) + '</span><span class="meal-kcal">~' + cal + ' kcal</span></div>' +
+    '<div class="macro-row">' + macroChip('Protein', p, mq.protein) + macroChip('Carbs', c, mq.carbs) + macroChip('Fat', f, mq.fat) + '</div>';
+  if(m.reason) html += '<div class="meal-reason">' + esc(plainText(m.reason)) + '</div>';
+  if(dig.rating && digMap[dig.rating]){
+    const hex = colorHex(digMap[dig.rating][0]);
+    html += '<div class="meal-dig"><span class="dig-badge" style="color:' + hex + '; background:color-mix(in srgb, ' + hex + ' 14%, transparent);">' + digMap[dig.rating][1] + '</span>' +
+      (dig.note ? '<span class="dig-note">' + esc(plainText(dig.note)) + '</span>' : '') + '</div>';
+  }
+  return html + '</div>';
 }
 
 async function handlePhoto(event){
@@ -961,10 +1005,10 @@ async function handlePhoto(event){
     const mq = nutrition.macro_quality || {};
     const dotEmoji = { green: '🟢', yellow: '🟡', orange: '🟠', red: '🔴' }[rating];
 
-    const macroStr = 'P' + macroSpan(p, mq.protein) + '/C' + macroSpan(c, mq.carbs) + '/F' + macroSpan(f, mq.fat) + 'g';
+    /* Plain-text summary (used for exports and as a fallback); the timeline renders the card from meta. */
     const dig = nutrition.digestion || {};
     const digTag = dig.rating ? ' | digestion: ' + dig.rating + (dig.note ? ' (' + dig.note + ')' : '') : '';
-    const summary = foodName + ' — ~' + cal + ' kcal (' + macroStr + ')' + (reason ? ' — ' + reason : '') + digTag;
+    const summary = foodName + ' — ~' + cal + ' kcal (P' + p + '/C' + c + '/F' + f + 'g)' + (reason ? ' — ' + reason : '') + digTag;
     addLog('Meal Photo', summary, nutrition);
     toast(dotEmoji + ' Logged: ' + foodName);
   } catch(err){
