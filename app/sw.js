@@ -1,5 +1,5 @@
 /* LAZLOG service worker. Keep VERSION in sync with APP_VERSION in index.html. */
-const VERSION = '1.0.2';
+const VERSION = '1.0.3';
 const CACHE = 'lazlog-v' + VERSION;
 const PRECACHE = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 

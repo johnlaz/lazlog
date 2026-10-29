@@ -44,10 +44,11 @@
   .day-label{font-size:13px; font-weight:600; text-align:center; flex:1;}
   .day-label .today-tag{display:block; font-size:11px; color:var(--teal); font-weight:600; letter-spacing:0.5px; margin-top:1px;}
 
-  .trend-strip{display:flex; justify-content:space-between; gap:4px; margin-bottom:14px; padding:0 2px;}
-  .trend-dot-wrap{display:flex; flex-direction:column; align-items:center; gap:5px; cursor:pointer; flex:1; padding:4px 0;}
+  .trend-strip{display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:4px; margin-bottom:14px; padding:0;}
+  .trend-dot-wrap{display:flex; flex-direction:column; align-items:center; gap:5px; cursor:pointer; min-width:0; padding:6px 0;}
   .trend-dot{width:13px; height:13px; border-radius:50%; transition:opacity 0.15s, box-shadow 0.15s;}
-  .trend-daylabel{font-size:11px; color:var(--text-dim); font-weight:600; letter-spacing:0.5px;}
+  .trend-daylabel{font-size:11px; line-height:1.2; color:var(--text-dim); font-weight:600; letter-spacing:0.3px; white-space:nowrap;}
+  .trend-daylabel.is-today{color:var(--teal);}
 
   .verdict{background:linear-gradient(135deg, var(--card), var(--card-2)); border:1px solid var(--border-2); border-radius:14px; padding:14px 16px; margin-bottom:18px;}
   .verdict-top{display:flex; align-items:center; gap:10px; margin-bottom:8px;}
@@ -486,7 +487,7 @@ let quickScans = JSON.parse(localStorage.getItem('lazlog_scans') || '[]');
 let mealPlan = JSON.parse(localStorage.getItem('lazlog_mealplan') || 'null');
 let selectedDate = toISODate(new Date());
 let currentTab = 'home';
-const APP_VERSION = '1.0.2';
+const APP_VERSION = '1.0.3';
 const DEFAULT_MODEL = 'qwen/qwen3.8-27b';
 /* Groq's /models endpoint does not say which models accept images. Per Groq's vision docs the only
    image-input model today is qwen/qwen3.8-27b; the other patterns cover the usual vision-model names
@@ -639,10 +640,10 @@ function renderTrendStrip(){
     const dayLogs = logs.filter(function(l){ return l.date === iso; });
     const badge = computeDayBadge(dayLogs);
     const isSelected = iso === selectedDate;
-    const dayLabel = d.toLocaleDateString([], { weekday: 'narrow' });
+    const dayLabel = d.toLocaleDateString([], { weekday: 'short' });
     html += '<button type="button" class="trend-dot-wrap" aria-label="' + iso + ': ' + badge.label + '" onclick="jumpToDay(\'' + iso + '\')">' +
       '<div class="trend-dot" style="background:' + badge.color + '; opacity:' + (isSelected ? '1' : '0.55') + '; box-shadow:' + (isSelected ? '0 0 0 2px var(--accent)' : 'none') + ';" title="' + iso + ': ' + badge.label + '"></div>' +
-      '<div class="trend-daylabel">' + (iso === today ? '•' : dayLabel) + '</div></button>';
+      '<div class="trend-daylabel' + (iso === today ? ' is-today' : '') + '">' + dayLabel + '</div></button>';
   }
   el.innerHTML = html;
 }
